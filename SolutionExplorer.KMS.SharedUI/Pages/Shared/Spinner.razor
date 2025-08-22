@@ -1,0 +1,27 @@
+﻿@if (IsVisible)
+{
+    <div class="loading-container vh-100 d-flex align-items-center justify-content-center gap-3">
+        <div class="h5 spinner-border"></div>
+        <div class="h2">لطفا شکیبا باشید ...</div>
+    </div>
+}
+
+@code {
+    protected bool IsVisible { get; set; }
+
+    public void ShowLoadingSpinner()
+    {
+        IsVisible = true;
+        if (IsVisible == true)
+            StateHasChanged();
+    }
+
+    async public void HideLoadingSpinner()
+    {
+        IsVisible = false;
+        await Task.Delay(500);
+
+        if (IsVisible == false)
+            StateHasChanged();
+    }
+}
