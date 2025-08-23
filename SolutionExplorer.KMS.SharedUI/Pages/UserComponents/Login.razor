@@ -1,0 +1,104 @@
+﻿@page "/login"
+@inject IHttpService HttpService
+@inject ILocalStorageService LocalStorage
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<MudPaper Class="pa-4 mx-auto" MaxWidth="400px">
+    <MudText Typo="Typo.h5">ورود به سیستم</MudText>
+    <MudTextField @bind-Value="model.UserName" Label="@(ApplicationHelper.GetDisplayName<LoginDto>(nameof(LoginDto.UserName)))" Required="true" />
+    <MudTextField @bind-Value="model.Password" Label="@(ApplicationHelper.GetDisplayName<LoginDto>(nameof(LoginDto.Password)))" InputType="InputType.Password" Required="true" />
+    <MudButton OnClick="LoginAsync" Color="Color.Primary" Variant="Variant.Filled">ورود</MudButton>
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <MudAlert Severity="Severity.Error">@errorMessage</MudAlert>
+    }
+</MudPaper>
+
+@code {
+    private LoginDto model = new();
+    private string errorMessage;
+
+    private async Task LoginAsync()
+    {
+        errorMessage = null;
+
+        var result = await HttpService.PostAsync<LoginDto, ApiResult<UserAndTokenDisplayDto>>(
+            "api/User/Login", model);
+
+        if (result?.IsSuccess == true && result.Data?.Token != null)
+        {
+            // ذخیره توکن
+            await LocalStorage.SetItemAsync("authToken", result.Data.Token);
+
+            // اعلام تغییر وضعیت احراز هویت
+            if (AuthStateProvider is CustomAuthenticationStateProvider customAuth)
+            {
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, result.Data.UserName),
+                    new Claim("Token", result.Data.Token)
+                };
+
+                if (result.Data.UserRoles != null)
+                {
+                    foreach (var role in result.Data.UserRoles)
+                    {
+                        claims.Add(new Claim(ClaimTypes.Role, role.RoleTitle));
+                    }
+                }
+
+                var identity = new ClaimsIdentity(claims, "apiauth");
+                var user = new ClaimsPrincipal(identity);
+                customAuth.NotifyUserAuthentication(user);
+            }
+
+            // هدایت به صفحه اصلی
+            Navigation.NavigateTo("/", true);
+        }
+        else
+        {
+            errorMessage = result?.Message ?? "ورود ناموفق بود.";
+        }
+    }
+}
+
+
+
+@* @page "/login"
+@inject IHttpService HttpService
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<MudPaper Class="pa-4 mx-auto" MaxWidth="400px">
+    <MudText Typo="Typo.h5">Login</MudText>
+    <MudTextField @bind-Value="model.UserName" Label="@(ApplicationHelper.GetDisplayName<LoginDto>(nameof(LoginDto.UserName)))" Required="true" />
+    <MudTextField @bind-Value="model.Password" Label="@(ApplicationHelper.GetDisplayName<LoginDto>(nameof(LoginDto.Password)))" InputType="InputType.Password" Required="true" />
+    <MudButton OnClick="LoginAsync" Color="Color.Primary" Variant="Variant.Filled">Login</MudButton>
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <MudAlert Severity="Severity.Error">@errorMessage</MudAlert>
+    }
+</MudPaper>
+
+@code {
+    private LoginDto model = new();
+    private string errorMessage;
+
+    private async Task LoginAsync()
+    {
+        var result = await HttpService.PostAsync<LoginDto, ApiResult<UserAndTokenDisplayDto>>(
+            "api/User/Login", model);
+
+        if (result?.IsSuccess == true && result.Data?.Token != null)
+        {
+            await JS.InvokeVoidAsync("localStorage.setItem", "authToken", result.Data.Token);
+            Navigation.NavigateTo("/");
+        }
+        else
+        {
+            errorMessage = result?.Message ?? "Login failed.";
+        }
+    }
+} *@
