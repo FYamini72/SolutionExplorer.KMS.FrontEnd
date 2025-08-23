@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor;
@@ -14,6 +15,9 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddScoped(sp => new HttpClient());
 builder.Services.AddScoped<IHttpService, HttpService>();
+builder.Services.AddScoped<ILocalStorageService, LocalStorageService>();
+builder.Services.AddAuthorizationCore();
+builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
 
 var culture = new CultureInfo("fa-IR");
 CultureInfo.DefaultThreadCurrentCulture = culture;
@@ -21,7 +25,6 @@ CultureInfo.DefaultThreadCurrentUICulture = culture;
 
 builder.Services.AddMudServices();
 builder.Services.AddSingleton<MudLocalizer, DictionaryMudLocalizer>();
-//builder.Services.AddScoped<SpinnerService>();
 
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 

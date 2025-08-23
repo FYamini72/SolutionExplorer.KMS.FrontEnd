@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using MudBlazor;
 using MudBlazor.Services;
@@ -26,6 +27,9 @@ namespace SolutionExplorer.KMS.WinUI
             services.AddWindowsFormsBlazorWebView();
             services.AddScoped(sp => new HttpClient());
             services.AddScoped<IHttpService, HttpService>();
+            services.AddScoped<ILocalStorageService, LocalStorageService>();
+            services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
+            services.AddAuthorizationCore();
 
             var culture = new CultureInfo("fa-IR");
             CultureInfo.DefaultThreadCurrentCulture = culture;
@@ -33,7 +37,6 @@ namespace SolutionExplorer.KMS.WinUI
 
             services.AddMudServices();
             services.AddSingleton<MudLocalizer, DictionaryMudLocalizer>();
-            //services.AddScoped<SpinnerService>();
 
             services.AddLocalization(options => options.ResourcesPath = "Resources");
 
