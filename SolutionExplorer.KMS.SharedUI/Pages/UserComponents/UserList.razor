@@ -1,0 +1,160 @@
+﻿@page "/users"
+@inject IHttpService httpHelper
+@inject IJSRuntime JSRuntime
+
+@* <div class="accordion" id="accordionExample">
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="headingOne">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                Accordion Item #1
+            </button>
+        </h2>
+        <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+            <div class="accordion-body">
+                <strong>This is the first item's accordion body.</strong> It is shown by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It's also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the transition does limit overflow.
+            </div>
+        </div>
+    </div>
+</div> *@
+
+<div class="accordion" id="accordionFlushExample">
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="headingOne">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne">
+                فرم جستجو کاربران
+            </button>
+        </h2>
+        <div id="flush-collapseOne" class="accordion-collapse collapse" aria-labelledby="flush-headingOne" data-bs-parent="#accordionFlushExample">
+            <div class="accordion-body">
+                <form class="row g-3" @onreset="ClearForm">
+                    <!-- نام کاربری -->
+                    <div class="col-md-4 col-sm-6">
+                        <label class="form-label fw-semibold">
+                            @(ApplicationHelper.GetDisplayName<UserSearchDto>(nameof(UserSearchDto.UserName)))
+                        </label>
+                        <input type="text"
+                               class="form-control"
+                               @bind="searchModel.UserName"
+                               placeholder="مثلاً: admin" />
+                    </div>
+
+                    <!-- نام -->
+                    <div class="col-md-4 col-sm-6">
+                        <label class="form-label fw-semibold">
+                            @(ApplicationHelper.GetDisplayName<UserSearchDto>(nameof(UserSearchDto.FirstName)))
+                        </label>
+                        <input type="text"
+                               class="form-control"
+                               @bind="searchModel.FirstName"
+                               placeholder="مثلاً: علی" />
+                    </div>
+
+                    <!-- نام خانوادگی -->
+                    <div class="col-md-4 col-sm-6">
+                        <label class="form-label fw-semibold">
+                            @(ApplicationHelper.GetDisplayName<UserSearchDto>(nameof(UserSearchDto.LastName)))
+                        </label>
+                        <input type="text"
+                               class="form-control"
+                               @bind="searchModel.LastName"
+                               placeholder="مثلاً: رضایی" />
+                    </div>
+
+                    <!-- دکمه‌ها -->
+                    <div class="col-12 text-end mt-3">
+                        <button type="reset"
+                                class="btn btn-outline-secondary px-4 me-2">
+                            <i class="fas fa-times me-1"></i> پاک کردن
+                        </button>
+                        <button type="button"
+                                class="btn btn-primary px-4"
+                                @onclick="OnSearch">
+                            <i class="fas fa-search me-1"></i> جستجو
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<MudTable ServerData="ServerReload" Dense="false" Hover="true" @ref="table">
+    <HeaderContent>
+        <MudTh><MudTableSortLabel SortLabel="@(nameof(UserDisplayDto.UserName))" T="UserDisplayDto">@(ApplicationHelper.GetDisplayName<UserDisplayDto>(nameof(UserDisplayDto.UserName)))</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortLabel="@(nameof(UserDisplayDto.FirstName))" T="UserDisplayDto">@(ApplicationHelper.GetDisplayName<UserDisplayDto>(nameof(UserDisplayDto.FirstName)))</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortLabel="@(nameof(UserDisplayDto.LastName))" T="UserDisplayDto">@(ApplicationHelper.GetDisplayName<UserDisplayDto>(nameof(UserDisplayDto.LastName)))</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel T="UserDisplayDto">عملیات</MudTableSortLabel></MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="@(nameof(UserDisplayDto.UserName))">@context.UserName</MudTd>
+        <MudTd DataLabel="@(nameof(UserDisplayDto.FirstName))">@context.FirstName</MudTd>
+        <MudTd DataLabel="@(nameof(UserDisplayDto.LastName))">@context.LastName</MudTd>
+        <MudTd DataLabel="@(nameof(UserDisplayDto.Id))">
+            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Medium" OnClick="@(() => DeleteItem(context.Id))"></MudIconButton>
+            <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Medium" OnClick="@(() => EditItem(context))"></MudIconButton>
+        </MudTd>
+    </RowTemplate>
+    <NoRecordsContent>
+        <MudText>No matching records found</MudText>
+    </NoRecordsContent>
+    <LoadingContent>
+        <MudText>Loading...</MudText>
+    </LoadingContent>
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
+
+@code {
+    private UserSearchDto searchModel = new();
+    private IEnumerable<UserDisplayDto> pagedData;
+    private MudTable<UserDisplayDto> table;
+
+    NotificationClassName ClassName = NotificationClassName.Success;
+    string MessageBody = "عملیات با موفقت انجام شد.";
+
+
+    private async Task<TableData<UserDisplayDto>> ServerReload(TableState state, CancellationToken token)
+    {
+        searchModel.CalculateTakeAndSkip(state.Page, state.PageSize);
+        var apiResult = await httpHelper
+            .GetByFilterAsync<UserSearchDto, ApiResult<BaseGridDto<UserDisplayDto>>>(
+                "api/user/GetByFilter",
+                searchModel);
+        pagedData = apiResult?.Data?.Data ?? new();
+        var totalItems = apiResult?.Data?.TotalCount ?? 0;
+        return new TableData<UserDisplayDto>() { TotalItems = totalItems, Items = pagedData };
+    }
+
+    private void OnSearch()
+    {
+        table.ReloadServerData();
+    }
+
+    private void ClearForm()
+    {
+        searchModel = new UserSearchDto();
+        // نیازی به StateHasChanged نیست، چون Blazor وقتی دکمه را می‌فشارد، آن را فراخوانی می‌کند
+    }
+
+    private async Task EditItem(UserDisplayDto item)
+    {
+        // Handle edit logic for the specific item
+        MessageBody = $"Editing item: {item.UserName}";
+        await ShowMessage();
+    }
+
+    private async Task DeleteItem(int id)
+    {
+        // Handle delete logic for the specific item by ID
+        MessageBody = $"Deleting item with ID: {id}";
+        await ShowMessage();
+    }
+
+    private async Task ShowMessage()
+    {
+        await JSRuntime.InvokeVoidAsync("showToast", ClassName.ToDisplay(), MessageBody);
+    }
+
+}
