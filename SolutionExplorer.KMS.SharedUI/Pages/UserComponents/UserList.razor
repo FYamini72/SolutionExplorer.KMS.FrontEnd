@@ -27,75 +27,77 @@
                   OnCompleted="HandleCreateFormCompleted" />
 </Modal>
 
-<div class="accordion" id="accordionFlushExample">
-    <div class="accordion-item">
-        <h2 class="accordion-header" id="headingOne">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne">
-                فرم جستجو کاربران
-            </button>
-        </h2>
-        <div id="flush-collapseOne" class="accordion-collapse collapse" aria-labelledby="flush-headingOne" data-bs-parent="#accordionFlushExample">
-            <div class="accordion-body">
-                <form class="row g-3" @onreset="ClearForm">
-                    <!-- نام کاربری -->
-                    <div class="col-md-4 col-sm-6">
-                        <label class="form-label fw-semibold">
-                            @(ApplicationHelper.GetDisplayName<UserSearchDto>(nameof(UserSearchDto.UserName)))
-                        </label>
-                        <input type="text"
-                               class="form-control"
-                               @bind="searchModel.UserName"
-                               placeholder="مثلاً: admin" />
-                    </div>
+<div class="mb-3 d-flex flex-wrap gap-2">
+    <!-- دکمه نمایش/مخفی کردن فرم جستجو -->
+    <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#searchFormCollapse" aria-expanded="false" aria-controls="searchFormCollapse">
+        فرم جستجو
+    </button>
 
-                    <!-- نام -->
-                    <div class="col-md-4 col-sm-6">
-                        <label class="form-label fw-semibold">
-                            @(ApplicationHelper.GetDisplayName<UserSearchDto>(nameof(UserSearchDto.FirstName)))
-                        </label>
-                        <input type="text"
-                               class="form-control"
-                               @bind="searchModel.FirstName"
-                               placeholder="مثلاً: علی" />
-                    </div>
+    <!-- دکمه درج رکورد جدید -->
+    <button class="btn btn-success btn-sm" @onclick="CreateNewItem">
+        درج رکورد جدید
+    </button>
+</div>
 
-                    <!-- نام خانوادگی -->
-                    <div class="col-md-4 col-sm-6">
-                        <label class="form-label fw-semibold">
-                            @(ApplicationHelper.GetDisplayName<UserSearchDto>(nameof(UserSearchDto.LastName)))
-                        </label>
-                        <input type="text"
-                               class="form-control"
-                               @bind="searchModel.LastName"
-                               placeholder="مثلاً: رضایی" />
-                    </div>
-
-                    <!-- دکمه‌ها -->
-                    <div class="col-12 text-end mt-3">
-                        <button type="reset"
-                                class="btn btn-outline-secondary px-4 me-2">
-                            <i class="fas fa-times me-1"></i> پاک کردن
-                        </button>
-                        <button type="button"
-                                class="btn btn-primary px-4"
-                                @onclick="OnSearch">
-                            <i class="fas fa-search me-1"></i> جستجو
-                        </button>
-                    </div>
-                </form>
+<!-- فرم جستجو (با قابلیت collapse) -->
+<div class="collapse" id="searchFormCollapse">
+    <div class="card card-body mb-4 shadow-sm">
+        <form class="row g-3" @onreset="ClearForm">
+            <!-- نام کاربری -->
+            <div class="col-md-4 col-sm-6">
+                <label class="form-label fw-semibold">
+                    @(ApplicationHelper.GetDisplayName<UserSearchDto>(nameof(UserSearchDto.UserName)))
+                </label>
+                <input type="text"
+                       class="form-control"
+                       @bind="searchModel.UserName"
+                       placeholder="مثلاً: admin" />
             </div>
-        </div>
+
+            <!-- نام -->
+            <div class="col-md-4 col-sm-6">
+                <label class="form-label fw-semibold">
+                    @(ApplicationHelper.GetDisplayName<UserSearchDto>(nameof(UserSearchDto.FirstName)))
+                </label>
+                <input type="text"
+                       class="form-control"
+                       @bind="searchModel.FirstName"
+                       placeholder="مثلاً: علی" />
+            </div>
+
+            <!-- نام خانوادگی -->
+            <div class="col-md-4 col-sm-6">
+                <label class="form-label fw-semibold">
+                    @(ApplicationHelper.GetDisplayName<UserSearchDto>(nameof(UserSearchDto.LastName)))
+                </label>
+                <input type="text"
+                       class="form-control"
+                       @bind="searchModel.LastName"
+                       placeholder="مثلاً: رضایی" />
+            </div>
+
+            <!-- دکمه‌ها -->
+            <div class="col-12 text-end mt-3">
+                <button type="reset"
+                        class="btn btn-outline-secondary px-4 me-2">
+                    <i class="fas fa-times me-1"></i> پاک کردن
+                </button>
+                <button type="button"
+                        class="btn btn-primary px-4"
+                        @onclick="OnSearch">
+                    <i class="fas fa-search me-1"></i> جستجو
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
-<input type="button" class="btn btn-success btn-sm" value="درج رکورد جدید" @onclick="CreateNewItem" />
-
 <MudTable ServerData="ServerReload" Dense="false" Hover="true" @ref="table">
     <HeaderContent>
-        <MudTh><MudTableSortLabel SortLabel="@(nameof(UserDisplayDto.UserName))" T="UserDisplayDto">@(ApplicationHelper.GetDisplayName<UserDisplayDto>(nameof(UserDisplayDto.UserName)))</MudTableSortLabel></MudTh>
-        <MudTh><MudTableSortLabel SortLabel="@(nameof(UserDisplayDto.FirstName))" T="UserDisplayDto">@(ApplicationHelper.GetDisplayName<UserDisplayDto>(nameof(UserDisplayDto.FirstName)))</MudTableSortLabel></MudTh>
-        <MudTh><MudTableSortLabel SortLabel="@(nameof(UserDisplayDto.LastName))" T="UserDisplayDto">@(ApplicationHelper.GetDisplayName<UserDisplayDto>(nameof(UserDisplayDto.LastName)))</MudTableSortLabel></MudTh>
-        <MudTh><MudTableSortLabel T="UserDisplayDto">عملیات</MudTableSortLabel></MudTh>
+        <MudTh>@(ApplicationHelper.GetDisplayName<UserDisplayDto>(nameof(UserDisplayDto.UserName)))</MudTh>
+        <MudTh>@(ApplicationHelper.GetDisplayName<UserDisplayDto>(nameof(UserDisplayDto.FirstName)))</MudTh>
+        <MudTh>@(ApplicationHelper.GetDisplayName<UserDisplayDto>(nameof(UserDisplayDto.LastName)))</MudTh>
+        <MudTh>عملیات</MudTh>
     </HeaderContent>
     <RowTemplate>
         <MudTd DataLabel="@(nameof(UserDisplayDto.UserName))">@context.UserName</MudTd>
