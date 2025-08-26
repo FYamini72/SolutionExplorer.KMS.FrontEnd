@@ -3,17 +3,28 @@
 @inject IJSRuntime JSRuntime
 @attribute [Authorize]
 
-<!-- مودال: دکمه ثبت مودال، Submit فرم داخلی را صدا می‌زند -->
-<Modal @ref="modal"
+<Modal @ref="EditModal"
        Title="ویرایش کاربر"
-       OnSave="SubmitFromModal"
-       OnCancel="CancelEdit"
+       OnSave="SubmitFromEditModal"
+       OnCancel="Cancel"
        IsBusy="@isSaving">
 
     <!-- فرم ویرایش: منطق ذخیره داخل همین کامپوننت است -->
-    <UserEditForm @ref="userForm"
+    <UserEditForm @ref="userEditForm"
                   EditModel="@editUserModel"
-                  OnCompleted="HandleFormCompleted" />
+                  OnCompleted="HandleEditFormCompleted" />
+</Modal>
+
+<Modal @ref="CreateModal"
+       Title="ویرایش کاربر"
+       OnSave="SubmitFromCreateModal"
+       OnCancel="Cancel"
+       IsBusy="@isSaving">
+
+    <!-- فرم ویرایش: منطق ذخیره داخل همین کامپوننت است -->
+    <UserCreateForm @ref="userCreateForm"
+                  CreateModel="@createUserModel"
+                  OnCompleted="HandleCreateFormCompleted" />
 </Modal>
 
 <div class="accordion" id="accordionFlushExample">
@@ -77,6 +88,8 @@
     </div>
 </div>
 
+<input type="button" class="btn btn-success btn-sm" value="درج رکورد جدید" @onclick="CreateNewItem" />
+
 <MudTable ServerData="ServerReload" Dense="false" Hover="true" @ref="table">
     <HeaderContent>
         <MudTh><MudTableSortLabel SortLabel="@(nameof(UserDisplayDto.UserName))" T="UserDisplayDto">@(ApplicationHelper.GetDisplayName<UserDisplayDto>(nameof(UserDisplayDto.UserName)))</MudTableSortLabel></MudTh>
@@ -89,7 +102,6 @@
         <MudTd DataLabel="@(nameof(UserDisplayDto.FirstName))">@context.FirstName</MudTd>
         <MudTd DataLabel="@(nameof(UserDisplayDto.LastName))">@context.LastName</MudTd>
         <MudTd DataLabel="@(nameof(UserDisplayDto.Id))">
-            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Medium" OnClick="@(() => DeleteItem(context.Id))"></MudIconButton>
             <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Medium" OnClick="@(() => EditItem(context))"></MudIconButton>
         </MudTd>
     </RowTemplate>
@@ -109,11 +121,15 @@
     private IEnumerable<UserDisplayDto> pagedData;
     private MudTable<UserDisplayDto> table;
 
-    private Modal modal;
-    private UserEditForm userForm;                  // ⬅️ ref به فرم
+    private Modal EditModal;
+    private UserEditForm userEditForm;
     private UserUpdateDto editUserModel = new();
+    
+    private Modal CreateModal;
+    private UserCreateForm userCreateForm;
+    private UserCreateDto createUserModel = new();
 
-    private bool isSaving = false;                  // ⬅️ برای غیرفعال‌کردن دکمه‌های مودال هنگام ذخیره
+    private bool isSaving = false;
 
     NotificationClassName ClassName = NotificationClassName.Success;
     string MessageBody = "عملیات با موفقت انجام شد.";
@@ -139,39 +155,37 @@
         // Blazor خودش StateHasChanged را بعد از reset فراخوانی می‌کند
     }
 
+    #region Edit User
+
     private async Task EditItem(UserDisplayDto item)
     {
         editUserModel = new UserUpdateDto
         {
             Id = item.Id,
             FirstName = item.FirstName,
-            LastName = item.LastName
+            LastName = item.LastName,
+            NewPassword = null
         };
 
-        await modal.Show();
+        await EditModal.Show();
     }
 
-    // ⬅️ این متد با کلیک روی دکمه "ثبت" مودال صدا زده می‌شود
-    private async Task SubmitFromModal()
+    private async Task SubmitFromEditModal()
     {
         isSaving = true;
         StateHasChanged();
 
-        var saved = await userForm.SubmitAsync();
+        var saved = await userEditForm.SubmitAsync();
 
         if (!saved)
         {
-            // فرم نامعتبر است، فقط حالت busy برداشته شود و پیام زیر فیلد باقی بماند
             isSaving = false;
             StateHasChanged();
             return;
         }
-
-        // SaveAsync داخل فرم خودش OnCompleted را صدا زده، HandleFormCompleted نتیجه را مدیریت می‌کند
     }
 
-    // ⬅️ نتیجه ذخیره از خود فرم می‌آید
-    private async Task HandleFormCompleted(ApiResult<UserDisplayDto> result)
+    private async Task HandleEditFormCompleted(ApiResult<UserDisplayDto> result)
     {
         isSaving = false;
 
@@ -180,30 +194,70 @@
             MessageBody = "عملیات با موفقیت انجام شد.";
             ClassName = NotificationClassName.Success;
 
-            await table.ReloadServerData(); // بروزرسانی لیست
-            await modal.Hide();             // بستن مودال بعد از موفقیت
+            await table.ReloadServerData();
+            await EditModal.Hide();
         }
         else
         {
-            MessageBody = result?.Message ?? "خطا در ویرایش کاربر.";
+            MessageBody = result?.Message ?? "خطایی رخ داده است. جهت پیگیری با پشتیبانی تماس بگیرید.";
             ClassName = NotificationClassName.Error;
-            // مودال باز می‌ماند تا کاربر خطا را اصلاح کند
         }
 
         await ShowMessage();
     }
 
-    private Task CancelEdit()
+    #endregion
+
+    #region Create User
+
+    private async Task CreateNewItem()
     {
-        // در صورت نیاز می‌توانید مدل و وضعیت‌ها را بازنشانی کنید
-        return Task.CompletedTask;
+        createUserModel = new UserCreateDto();
+
+        await CreateModal.Show();
     }
 
-    private async Task DeleteItem(int id)
+    private async Task SubmitFromCreateModal()
     {
-        // TODO: منطق حذف
-        MessageBody = $"Deleting item with ID: {id}";
+        isSaving = true;
+        StateHasChanged();
+
+        var saved = await userCreateForm.SubmitAsync();
+
+        if (!saved)
+        {
+            isSaving = false;
+            StateHasChanged();
+            return;
+        }
+    }
+
+    private async Task HandleCreateFormCompleted(ApiResult<UserDisplayDto> result)
+    {
+        isSaving = false;
+
+        if (result?.IsSuccess ?? false)
+        {
+            MessageBody = "عملیات با موفقیت انجام شد.";
+            ClassName = NotificationClassName.Success;
+
+            await table.ReloadServerData();
+            await CreateModal.Hide();
+        }
+        else
+        {
+            MessageBody = result?.Message ?? "خطایی رخ داده است. جهت پیگیری با پشتیبانی تماس بگیرید.";
+            ClassName = NotificationClassName.Error;
+        }
+
         await ShowMessage();
+    }
+
+    #endregion
+
+    private Task Cancel()
+    {
+        return Task.CompletedTask;
     }
 
     private async Task ShowMessage()

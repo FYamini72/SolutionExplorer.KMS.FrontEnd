@@ -10,5 +10,8 @@ namespace SolutionExplorer.KMS.SharedUI.Dtos.UserDtos
 
         [Display(Name = "نام خانوادگی")]
         public string? LastName { get; set; }
+
+        [Display(Name = "کلمه عبور جدید")]
+        public string? NewPassword { get; set; }
     }
 }
