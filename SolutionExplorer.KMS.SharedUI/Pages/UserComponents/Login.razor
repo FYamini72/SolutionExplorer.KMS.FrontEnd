@@ -25,7 +25,7 @@
         errorMessage = null;
 
         var result = await HttpService.PostAsync<LoginDto, ApiResult<UserAndTokenDisplayDto>>(
-            "api/User/Login", model);
+            "api/User/Login", model, false);
 
         if (result?.IsSuccess == true && result.Data?.Token != null)
         {

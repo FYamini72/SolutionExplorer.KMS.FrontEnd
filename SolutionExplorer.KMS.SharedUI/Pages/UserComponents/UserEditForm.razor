@@ -1,0 +1,85 @@
+﻿@inject IHttpService httpHelper
+
+<div>
+    <EditForm EditContext="@_editContext" OnValidSubmit="@SaveAsync">
+        <DataAnnotationsValidator />
+
+        <input type="hidden" @bind="EditModel.Id" />
+
+        <div class="mb-3">
+            <label class="form-label fw-semibold">
+                @(ApplicationHelper.GetDisplayName<UserUpdateDto>(nameof(UserUpdateDto.FirstName)))
+            </label>
+            <InputText class="form-control" @bind-Value="EditModel.FirstName" />
+            <ValidationMessage For="@(() => EditModel.FirstName)" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label fw-semibold">
+                @(ApplicationHelper.GetDisplayName<UserUpdateDto>(nameof(UserUpdateDto.LastName)))
+            </label>
+            <InputText class="form-control" @bind-Value="EditModel.LastName" />
+            <ValidationMessage For="@(() => EditModel.LastName)" />
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    [Parameter] public UserUpdateDto EditModel { get; set; } = new();
+    [Parameter] public EventCallback<ApiResult<UserDisplayDto>> OnCompleted { get; set; }
+
+    private EditContext _editContext;
+
+    protected override void OnParametersSet()
+    {
+        // هر بار که پارامترها تغییر کنن (مثلاً مدل جدید بیاد)، EditContext دوباره ساخته بشه
+        _editContext = new EditContext(EditModel);
+    }
+
+    /// <summary>
+    /// فراخوانی از والد (مودال) برای ثبت فرم.
+    /// </summary>
+    public async Task<bool> SubmitAsync()
+    {
+        // حتماً EditContext رو با آخرین مدل بروزرسانی کن
+        if (_editContext.Model != EditModel)
+        {
+            _editContext = new EditContext(EditModel);
+        }
+
+        // پاک کردن وضعیت قبلی اعتبارسنجی
+        _editContext.NotifyValidationStateChanged();
+
+        // اجرای اعتبارسنجی از نو
+        var isValid = _editContext.Validate();
+
+        if (!isValid)
+        {
+            StateHasChanged(); // اطمینان از رندر دوباره ValidationMessageها
+            return false;
+        }
+
+        await SaveAsync();
+        return true;
+    }
+
+    private async Task SaveAsync()
+    {
+        try
+        {
+            var result = await httpHelper
+                .PutAsync<UserUpdateDto, ApiResult<UserDisplayDto>>("api/user/UpdateUser", EditModel);
+
+            await OnCompleted.InvokeAsync(result);
+        }
+        catch (Exception ex)
+        {
+            var errorResult = new ApiResult<UserDisplayDto>
+            {
+                IsSuccess = false,
+                Message = $"خطا در ارتباط با سرور: {ex.Message}"
+            };
+            await OnCompleted.InvokeAsync(errorResult);
+        }
+    }
+}

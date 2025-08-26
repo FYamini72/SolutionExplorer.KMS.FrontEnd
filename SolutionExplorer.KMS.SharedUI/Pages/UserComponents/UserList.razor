@@ -1,21 +1,20 @@
 ﻿@page "/users"
 @inject IHttpService httpHelper
 @inject IJSRuntime JSRuntime
+@attribute [Authorize]
 
-@* <div class="accordion" id="accordionExample">
-    <div class="accordion-item">
-        <h2 class="accordion-header" id="headingOne">
-            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                Accordion Item #1
-            </button>
-        </h2>
-        <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
-            <div class="accordion-body">
-                <strong>This is the first item's accordion body.</strong> It is shown by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It's also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the transition does limit overflow.
-            </div>
-        </div>
-    </div>
-</div> *@
+<!-- مودال: دکمه ثبت مودال، Submit فرم داخلی را صدا می‌زند -->
+<Modal @ref="modal"
+       Title="ویرایش کاربر"
+       OnSave="SubmitFromModal"
+       OnCancel="CancelEdit"
+       IsBusy="@isSaving">
+
+    <!-- فرم ویرایش: منطق ذخیره داخل همین کامپوننت است -->
+    <UserEditForm @ref="userForm"
+                  EditModel="@editUserModel"
+                  OnCompleted="HandleFormCompleted" />
+</Modal>
 
 <div class="accordion" id="accordionFlushExample">
     <div class="accordion-item">
@@ -78,7 +77,6 @@
     </div>
 </div>
 
-
 <MudTable ServerData="ServerReload" Dense="false" Hover="true" @ref="table">
     <HeaderContent>
         <MudTh><MudTableSortLabel SortLabel="@(nameof(UserDisplayDto.UserName))" T="UserDisplayDto">@(ApplicationHelper.GetDisplayName<UserDisplayDto>(nameof(UserDisplayDto.UserName)))</MudTableSortLabel></MudTh>
@@ -111,9 +109,14 @@
     private IEnumerable<UserDisplayDto> pagedData;
     private MudTable<UserDisplayDto> table;
 
+    private Modal modal;
+    private UserEditForm userForm;                  // ⬅️ ref به فرم
+    private UserUpdateDto editUserModel = new();
+
+    private bool isSaving = false;                  // ⬅️ برای غیرفعال‌کردن دکمه‌های مودال هنگام ذخیره
+
     NotificationClassName ClassName = NotificationClassName.Success;
     string MessageBody = "عملیات با موفقت انجام شد.";
-
 
     private async Task<TableData<UserDisplayDto>> ServerReload(TableState state, CancellationToken token)
     {
@@ -122,32 +125,83 @@
             .GetByFilterAsync<UserSearchDto, ApiResult<BaseGridDto<UserDisplayDto>>>(
                 "api/user/GetByFilter",
                 searchModel);
-        pagedData = apiResult?.Data?.Data ?? new();
+
+        pagedData = apiResult?.Data?.Data ?? new List<UserDisplayDto>();
         var totalItems = apiResult?.Data?.TotalCount ?? 0;
         return new TableData<UserDisplayDto>() { TotalItems = totalItems, Items = pagedData };
     }
 
-    private void OnSearch()
-    {
-        table.ReloadServerData();
-    }
+    private void OnSearch() => table.ReloadServerData();
 
     private void ClearForm()
     {
         searchModel = new UserSearchDto();
-        // نیازی به StateHasChanged نیست، چون Blazor وقتی دکمه را می‌فشارد، آن را فراخوانی می‌کند
+        // Blazor خودش StateHasChanged را بعد از reset فراخوانی می‌کند
     }
 
     private async Task EditItem(UserDisplayDto item)
     {
-        // Handle edit logic for the specific item
-        MessageBody = $"Editing item: {item.UserName}";
+        editUserModel = new UserUpdateDto
+        {
+            Id = item.Id,
+            FirstName = item.FirstName,
+            LastName = item.LastName
+        };
+
+        await modal.Show();
+    }
+
+    // ⬅️ این متد با کلیک روی دکمه "ثبت" مودال صدا زده می‌شود
+    private async Task SubmitFromModal()
+    {
+        isSaving = true;
+        StateHasChanged();
+
+        var saved = await userForm.SubmitAsync();
+
+        if (!saved)
+        {
+            // فرم نامعتبر است، فقط حالت busy برداشته شود و پیام زیر فیلد باقی بماند
+            isSaving = false;
+            StateHasChanged();
+            return;
+        }
+
+        // SaveAsync داخل فرم خودش OnCompleted را صدا زده، HandleFormCompleted نتیجه را مدیریت می‌کند
+    }
+
+    // ⬅️ نتیجه ذخیره از خود فرم می‌آید
+    private async Task HandleFormCompleted(ApiResult<UserDisplayDto> result)
+    {
+        isSaving = false;
+
+        if (result?.IsSuccess ?? false)
+        {
+            MessageBody = "عملیات با موفقیت انجام شد.";
+            ClassName = NotificationClassName.Success;
+
+            await table.ReloadServerData(); // بروزرسانی لیست
+            await modal.Hide();             // بستن مودال بعد از موفقیت
+        }
+        else
+        {
+            MessageBody = result?.Message ?? "خطا در ویرایش کاربر.";
+            ClassName = NotificationClassName.Error;
+            // مودال باز می‌ماند تا کاربر خطا را اصلاح کند
+        }
+
         await ShowMessage();
+    }
+
+    private Task CancelEdit()
+    {
+        // در صورت نیاز می‌توانید مدل و وضعیت‌ها را بازنشانی کنید
+        return Task.CompletedTask;
     }
 
     private async Task DeleteItem(int id)
     {
-        // Handle delete logic for the specific item by ID
+        // TODO: منطق حذف
         MessageBody = $"Deleting item with ID: {id}";
         await ShowMessage();
     }
@@ -156,5 +210,4 @@
     {
         await JSRuntime.InvokeVoidAsync("showToast", ClassName.ToDisplay(), MessageBody);
     }
-
 }

@@ -7,8 +7,9 @@
         /// </summary>
         /// <typeparam name="TResponse">نوع بازگشتی سرویس</typeparam>
         /// <param name="endpoint">آدرس سرویس</param>
+        /// <param name="addAuthToken">آیا توکن احراز هویت به درخواست اضافه شود؟ (پیش‌فرض: true)</param>
         /// <returns>اطلاعات بازگشتی که به مدل مشخص شده تبدیل شده است.</returns>
-        Task<TResponse?> GetAsync<TResponse>(string endpoint);
+        Task<TResponse?> GetAsync<TResponse>(string endpoint, bool addAuthToken = true);
 
         /// <summary>
         /// به روش آسنکرون، یک درخواست اچ تی تی پی با متد پست را ارسال می‌کند.
@@ -18,8 +19,9 @@
         /// <typeparam name="TResponse">نوع بازگشتی سرویس</typeparam>
         /// <param name="endpoint">آدرس سرویس</param>
         /// <param name="model">اطلاعات مورد نیاز جهت جستجو و صفحه بندی</param>
+        /// <param name="addAuthToken">آیا توکن احراز هویت به درخواست اضافه شود؟ (پیش‌فرض: true)</param>
         /// <returns>اطلاعات بازگشتی که به مدل مشخص شده تبدیل شده است.</returns>
-        Task<TResponse?> GetByFilterAsync<TRequest, TResponse>(string endpoint, TRequest model);
+        Task<TResponse?> GetByFilterAsync<TRequest, TResponse>(string endpoint, TRequest model, bool addAuthToken = true);
 
         /// <summary>
         /// به روش آسنکرون، یک درخواست اچ تی تی پی با متد پست را ارسال می‌کند
@@ -28,8 +30,9 @@
         /// <typeparam name="TResponse">نوع بازگشتی سرویس</typeparam>
         /// <param name="endpoint">آدرس سرویس</param>
         /// <param name="model">اطلاعات مورد نیاز جهت ارسال به سرویس</param>
+        /// <param name="addAuthToken">آیا توکن احراز هویت به درخواست اضافه شود؟ (پیش‌فرض: true)</param>
         /// <returns>اطلاعات بازگشتی که به مدل مشخص شده تبدیل شده است.</returns>
-        Task<TResponse?> PostAsync<TRequest, TResponse>(string endPoint, TRequest model);
+        Task<TResponse?> PostAsync<TRequest, TResponse>(string endPoint, TRequest model, bool addAuthToken = true);
 
         /// <summary>
         /// به روش آسنکرون، یک درخواست اچ تی تی پی با متد پوت را ارسال می‌کند
@@ -38,16 +41,8 @@
         /// <typeparam name="TResponse">نوع بازگشتی سرویس</typeparam>
         /// <param name="endpoint">آدرس سرویس</param>
         /// <param name="model">اطلاعات مورد نیاز جهت ارسال به سرویس</param>
+        /// <param name="addAuthToken">آیا توکن احراز هویت به درخواست اضافه شود؟ (پیش‌فرض: true)</param>
         /// <returns>اطلاعات بازگشتی که به مدل مشخص شده تبدیل شده است.</returns>
-        Task<TResponse?> PutAsync<TRequest, TResponse>(string endPoint, TRequest model);
-    }
-
-    public interface ISpinnerService
-    {
-        event Action OnHide;
-        event Action OnShow;
-
-        void Hide();
-        void Show();
+        Task<TResponse?> PutAsync<TRequest, TResponse>(string endPoint, TRequest model, bool addAuthToken = true);
     }
 }

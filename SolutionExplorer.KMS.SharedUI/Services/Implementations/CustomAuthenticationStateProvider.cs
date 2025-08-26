@@ -28,13 +28,13 @@ namespace SolutionExplorer.KMS.SharedUI.Services.Implementations
                 return new AuthenticationState(_anonymous);
             }
 
-            var result = await _httpService.GetAsync<ApiResult<UserAndTokenDisplayDto>>("api/User/CheckTokenValidation");
-            if (result?.IsSuccess == true && result.Data != null)
+            var result = await _httpService.GetAsync<ApiResult<string>>("api/User/CheckTokenValidation");
+            if (result?.IsSuccess == true && !String.IsNullOrEmpty(result.Data))
             {
                 // ساخت claims و بازگردانی وضعیت معتبر
                 var claims = new List<Claim>
                 {
-                    new Claim(ClaimTypes.Name, result.Data.UserName),
+                    new Claim(ClaimTypes.Name, result.Data),
                     new Claim("Token", token)
                 };
 
@@ -48,45 +48,6 @@ namespace SolutionExplorer.KMS.SharedUI.Services.Implementations
             return new AuthenticationState(_anonymous);
         }
 
-        //public override async Task<AuthenticationState> GetAuthenticationStateAsync()
-        //{
-        //    var token = await _localStorage.GetItemAsync<string>("authToken");
-        //    if (string.IsNullOrEmpty(token))
-        //    {
-        //        return new AuthenticationState(_anonymous);
-        //    }
-
-        //    var result = await _httpService.GetAsync<ApiResult<UserAndTokenDisplayDto>>("api/User/CheckTokenValidation");
-        //    if (result?.IsSuccess == true && result.Data != null)
-        //    {
-        //        var user = result.Data;
-        //        var claims = new List<Claim>
-        //        {
-        //            new Claim(ClaimTypes.Name, user.UserName),
-        //            new Claim("Token", token)
-        //        };
-
-        //        // اضافه کردن نقش‌ها (اگر داشتید)
-        //        if (user.UserRoles != null)
-        //        {
-        //            foreach (var role in user.UserRoles)
-        //            {
-        //                claims.Add(new Claim(ClaimTypes.Role, role.RoleTitle));
-        //            }
-        //        }
-
-        //        var claimsIdentity = new ClaimsIdentity(claims, "apiauth");
-        //        var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
-
-        //        return new AuthenticationState(claimsPrincipal);
-        //    }
-
-        //    // اگر توکن معتبر نبود، پاکش کن
-        //    await _localStorage.RemoveItemAsync("authToken");
-        //    return new AuthenticationState(_anonymous);
-        //}
-
-        // فراخوانی این متد وقتی که وضعیت تغییر می‌کند (مثلاً بعد از لاگین/لاگ‌اوت)
         public void NotifyUserAuthentication(ClaimsPrincipal user)
         {
             var state = new AuthenticationState(user);
