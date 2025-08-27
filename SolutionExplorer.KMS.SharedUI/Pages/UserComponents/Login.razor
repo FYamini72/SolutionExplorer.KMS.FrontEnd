@@ -1,20 +1,64 @@
 ﻿@page "/login"
+@layout SimpleLayout
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
 @inject IHttpService HttpService
 @inject ILocalStorageService LocalStorage
-@inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Navigation
-@inject IJSRuntime JS
+@inject AuthenticationStateProvider AuthStateProvider
 
-<MudPaper Class="pa-4 mx-auto" MaxWidth="400px">
-    <MudText Typo="Typo.h5">ورود به سیستم</MudText>
-    <MudTextField @bind-Value="model.UserName" Label="@(ApplicationHelper.GetDisplayName<LoginDto>(nameof(LoginDto.UserName)))" Required="true" />
-    <MudTextField @bind-Value="model.Password" Label="@(ApplicationHelper.GetDisplayName<LoginDto>(nameof(LoginDto.Password)))" InputType="InputType.Password" Required="true" />
-    <MudButton OnClick="LoginAsync" Color="Color.Primary" Variant="Variant.Filled">ورود</MudButton>
-    @if (!string.IsNullOrEmpty(errorMessage))
-    {
-        <MudAlert Severity="Severity.Error">@errorMessage</MudAlert>
+
+<style>
+    .login-container {
+        width: 100%;
+        max-width: 400px;
+        min-width: 400px;
+        padding: 2rem;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        background-color: #fff;
     }
-</MudPaper>
+
+    body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        background-color: #f8f9fa;
+    }
+</style>
+
+<EditForm Model="@model" OnValidSubmit="@LoginAsync">
+    <DataAnnotationsValidator />
+    <ValidationSummary Class="alert alert-danger mb-3" />
+
+    <div class="login-container">
+        <h3 class="text-center mb-4">ورود به سیستم</h3>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert alert-danger text-center">
+                @errorMessage
+            </div>
+        }
+
+        <div class="mb-3">
+            <label for="username" class="form-label">نام کاربری</label>
+            <InputText id="username" class="form-control" @bind-Value="model.UserName" placeholder="نام کاربری خود را وارد کنید" />
+        </div>
+
+        <div class="mb-3">
+            <label for="password" class="form-label">رمز عبور</label>
+            <InputText id="password" type="password" class="form-control" @bind-Value="model.Password" placeholder="رمز عبور خود را وارد کنید" />
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100">ورود</button>
+    </div>
+
+    @* <div class="text-center mt-3">
+        <a href="/forgot-password" class="text-decoration-none">رمز عبور خود را فراموش کرده‌اید؟</a>
+    </div> *@
+</EditForm>
 
 @code {
     private LoginDto model = new();
@@ -25,11 +69,11 @@
         errorMessage = null;
 
         var result = await HttpService.PostAsync<LoginDto, ApiResult<UserAndTokenDisplayDto>>(
-            "api/User/Login", model);
+            "api/User/Login", model, false);
 
         if (result?.IsSuccess == true && result.Data?.Token != null)
         {
-            // ذخیره توکن
+            // ذخیره توکن در LocalStorage
             await LocalStorage.SetItemAsync("authToken", result.Data.Token);
 
             // اعلام تغییر وضعیت احراز هویت
@@ -63,42 +107,3 @@
         }
     }
 }
-
-
-
-@* @page "/login"
-@inject IHttpService HttpService
-@inject NavigationManager Navigation
-@inject IJSRuntime JS
-
-<MudPaper Class="pa-4 mx-auto" MaxWidth="400px">
-    <MudText Typo="Typo.h5">Login</MudText>
-    <MudTextField @bind-Value="model.UserName" Label="@(ApplicationHelper.GetDisplayName<LoginDto>(nameof(LoginDto.UserName)))" Required="true" />
-    <MudTextField @bind-Value="model.Password" Label="@(ApplicationHelper.GetDisplayName<LoginDto>(nameof(LoginDto.Password)))" InputType="InputType.Password" Required="true" />
-    <MudButton OnClick="LoginAsync" Color="Color.Primary" Variant="Variant.Filled">Login</MudButton>
-    @if (!string.IsNullOrEmpty(errorMessage))
-    {
-        <MudAlert Severity="Severity.Error">@errorMessage</MudAlert>
-    }
-</MudPaper>
-
-@code {
-    private LoginDto model = new();
-    private string errorMessage;
-
-    private async Task LoginAsync()
-    {
-        var result = await HttpService.PostAsync<LoginDto, ApiResult<UserAndTokenDisplayDto>>(
-            "api/User/Login", model);
-
-        if (result?.IsSuccess == true && result.Data?.Token != null)
-        {
-            await JS.InvokeVoidAsync("localStorage.setItem", "authToken", result.Data.Token);
-            Navigation.NavigateTo("/");
-        }
-        else
-        {
-            errorMessage = result?.Message ?? "Login failed.";
-        }
-    }
-} *@
