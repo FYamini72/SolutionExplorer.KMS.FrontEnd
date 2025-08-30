@@ -1,0 +1,33 @@
+﻿.encrypted-pdf-viewer {
+    overflow-y: auto; /* برای اسکرول صفحات */
+    direction: rtl; /* برای پشتیبانی RTL مثل فارسی؛ اگر لازم نبود حذف کن */
+    text-align: right;
+}
+
+.epv-page {
+    position: relative;
+    margin: 20px auto; /* جدایی بیشتر بین صفحات */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    overflow: hidden; /* جلوگیری از overflow محتوا */
+}
+
+.epv-textLayer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+    opacity: 1;
+    line-height: 1;
+    pointer-events: none; /* تغییر به auto اگر بخوای selection فعال باشه، اما برای امنیت none نگه دار */
+}
+
+    .epv-textLayer > div {
+        color: transparent; /* متن نامرئی اما selectable */
+        position: absolute;
+        white-space: pre;
+        cursor: text;
+        transform-origin: 0% 0%;
+        direction: rtl; /* RTL برای متن فارسی */
+    }
