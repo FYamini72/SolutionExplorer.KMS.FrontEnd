@@ -8,7 +8,257 @@
 </div>
 
 <div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
-    <nav class="nav flex-column">
+
+    <nav class="flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="oi oi-home" aria-hidden="true"></span> داشبورد
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" @onclick="() => expandBaseInfoSubNav = !expandBaseInfoSubNav">
+                <span class="oi oi-plus" aria-hidden="true"></span> اطلاعات پایه
+            </NavLink>
+            @if (expandBaseInfoSubNav)
+            {
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="#" @* @onclick="() => expandTestIdSubNav = !expandTestIdSubNav" *@>
+                        <span class="oi oi-arrow-circle-right"></span>شناسنامه تجهیزات
+                    </NavLink>
+
+                    @* @if (expandTestIdSubNav)
+                    {
+                        <div class="nav-item px-3">
+                            <NavLink class="nav-link" href="#">
+                                <span class="oi oi-arrow-circle-right"></span>شناسنامه آزمایشات
+                            </NavLink>
+                        </div>
+                    } *@
+
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="#">
+                        <span class="oi oi-arrow-circle-right"></span>شناسنامه آزمایشات
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="#">
+                        <span class="oi oi-arrow-circle-right"></span>چک لیست ممیزی
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="#">
+                        <span class="oi oi-arrow-circle-right"></span>گزارش جواب
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="#">
+                        <span class="oi oi-arrow-circle-right"></span>موارد بحرانی
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="#">
+                        <span class="oi oi-arrow-circle-right"></span>منابع
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="#">
+                        <span class="oi oi-arrow-circle-right"></span>بایگانی
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="#">
+                        <span class="oi oi-arrow-circle-right"></span>تنظیمات
+                    </NavLink>
+                </div>
+            }
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" @onclick="() => expandUserSubNav = !expandUserSubNav">
+                <span class="oi oi-plus" aria-hidden="true"></span> کارکنان
+            </NavLink>
+            @if (expandUserSubNav)
+            {
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="#">
+                        <span class="oi oi-arrow-circle-right"></span>شناسنامه و چارت سازمانی
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="#">
+                        <span class="oi oi-arrow-circle-right"></span>صلاحیت و وظایف
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="#">
+                        <span class="oi oi-arrow-circle-right"></span>ایمنی و حفاظت
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="#">
+                        <span class="oi oi-arrow-circle-right"></span>تست کوررنگی
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="#">
+                        <span class="oi oi-arrow-circle-right"></span>آموزش
+                    </NavLink>
+                </div>
+            }
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" @onclick="() => expandDocsSubNav = !expandDocsSubNav">
+                <span class="oi oi-plus" aria-hidden="true"></span> مستندات
+            </NavLink>
+            @if (expandDocsSubNav)
+            {
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="#">
+                        <span class="oi oi-arrow-circle-right"></span>برنامه کیفیت
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="#">
+                        <span class="oi oi-arrow-circle-right"></span>تجهیزات
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="#">
+                        <span class="oi oi-arrow-circle-right"></span>مواد و تست های تشخیصی
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="#">
+                        <span class="oi oi-arrow-circle-right"></span>مدیریت و پردازش نمونه
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="#">
+                        <span class="oi oi-arrow-circle-right"></span>شناسایی باکتری ها
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="#">
+                        <span class="oi oi-arrow-circle-right"></span>تفسیر کشت‌ها
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="#">
+                        <span class="oi oi-arrow-circle-right"></span>آنتی‌بیوگرام
+                    </NavLink>
+                </div>
+            }
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" @onclick="() => expandQualityCheckSubNav = !expandQualityCheckSubNav">
+                <span class="oi oi-plus" aria-hidden="true"></span> کنترل و تضمین کیفیت
+            </NavLink>
+            @if (expandQualityCheckSubNav)
+            {
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="#">
+                        <span class="oi oi-arrow-circle-right"></span>روزانه
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="#">
+                        <span class="oi oi-arrow-circle-right"></span>هفتگی
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="#">
+                        <span class="oi oi-arrow-circle-right"></span>ماهانه
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="#">
+                        <span class="oi oi-arrow-circle-right"></span>سه ماهه
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="#">
+                        <span class="oi oi-arrow-circle-right"></span>شش ماهه
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="#">
+                        <span class="oi oi-arrow-circle-right"></span>سالانه
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="#">
+                        <span class="oi oi-arrow-circle-right"></span>دوره‌ای
+                    </NavLink>
+                </div>
+            }
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" @onclick="() => expandErrorsSubNav = !expandErrorsSubNav">
+                <span class="oi oi-plus" aria-hidden="true"></span> عدم انطباق
+            </NavLink>
+            @if (expandErrorsSubNav)
+            {
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="#">
+                        <span class="oi oi-arrow-circle-right"></span>خطا و اقدام اصلاحی
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="#">
+                        <span class="oi oi-arrow-circle-right"></span>پیشگیرانه
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="#">
+                        <span class="oi oi-arrow-circle-right"></span>سوابق
+                    </NavLink>
+                </div>
+            }
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" @onclick="() => expandToolsSubNav = !expandToolsSubNav">
+                <span class="oi oi-plus" aria-hidden="true"></span> امکانات
+            </NavLink>
+            @if (expandToolsSubNav)
+            {
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="#">
+                        <span class="oi oi-arrow-circle-right"></span>سایت
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="#">
+                        <span class="oi oi-arrow-circle-right"></span>آموزش
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="#">
+                        <span class="oi oi-arrow-circle-right"></span>کتابخانه
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="#">
+                        <span class="oi oi-arrow-circle-right"></span>اطلاعیه
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="#">
+                        <span class="oi oi-arrow-circle-right"></span>درخواست‌ها
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="#">
+                        <span class="oi oi-arrow-circle-right"></span>اتصال به کارشناس
+                    </NavLink>
+                </div>
+            }
+        </div>
+
+    </nav>
+
+
+
+    @* <nav class="nav flex-column">
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
                 <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> داشبورد
@@ -25,16 +275,23 @@
             </NavLink>
         </div>
 
-    </nav>
+    </nav> *@
 </div>
 
 @code {
     private bool collapseNavMenu = true;
-
     private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
-
     private void ToggleNavMenu()
     {
         collapseNavMenu = !collapseNavMenu;
     }
+
+    private bool expandBaseInfoSubNav = false;
+    private bool expandUserSubNav = false;
+    private bool expandDocsSubNav = false;
+    private bool expandQualityCheckSubNav = false;
+    private bool expandErrorsSubNav = false;
+    private bool expandToolsSubNav = false;
+ 
+    private bool expandTestIdSubNav = false;
 }

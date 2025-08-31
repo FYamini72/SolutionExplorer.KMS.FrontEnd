@@ -26,9 +26,10 @@
         for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
             const page = await pdf.getPage(pageNum);
 
-            // محاسبه scale برای پر کردن کل عرض
+            // محاسبه scale برای پر کردن کل عرض + DPI واقعی
             const unscaledViewport = page.getViewport({ scale: 1 });
-            const scale = containerWidth / unscaledViewport.width;
+            const outputScale = window.devicePixelRatio || 1;
+            const scale = (containerWidth / unscaledViewport.width) * outputScale;
             const viewport = page.getViewport({ scale: scale });
 
             // هر صفحه → یک div مستقل
@@ -36,14 +37,21 @@
             pageDiv.className = 'pdf-page';
             pageDiv.style.position = 'relative';
             pageDiv.style.marginBottom = '20px';
-            pageDiv.style.width = viewport.width + 'px';
-            pageDiv.style.height = viewport.height + 'px';
+            pageDiv.style.width = (viewport.width / outputScale) + 'px';
+            pageDiv.style.height = (viewport.height / outputScale) + 'px';
 
             // canvas
             const canvas = document.createElement('canvas');
             const context = canvas.getContext('2d');
-            canvas.height = viewport.height;
+
+            // رزولوشن واقعی (برای کیفیت بالا)
             canvas.width = viewport.width;
+            canvas.height = viewport.height;
+
+            // سایز نمایش ظاهری (برای تناسب با کانتینر)
+            canvas.style.width = (viewport.width / outputScale) + 'px';
+            canvas.style.height = (viewport.height / outputScale) + 'px';
+
             pageDiv.appendChild(canvas);
 
             // رندر صفحه
@@ -59,14 +67,14 @@
             textLayerDiv.style.position = 'absolute';
             textLayerDiv.style.left = 0;
             textLayerDiv.style.top = 0;
-            textLayerDiv.style.height = viewport.height + 'px';
-            textLayerDiv.style.width = viewport.width + 'px';
+            textLayerDiv.style.height = (viewport.height / outputScale) + 'px';
+            textLayerDiv.style.width = (viewport.width / outputScale) + 'px';
             pageDiv.appendChild(textLayerDiv);
 
             pdfjsLib.renderTextLayer({
                 textContent,
                 container: textLayerDiv,
-                viewport,
+                viewport: page.getViewport({ scale: scale / outputScale }), // برای هماهنگی با لایه متن
                 textDivs: []
             });
 
