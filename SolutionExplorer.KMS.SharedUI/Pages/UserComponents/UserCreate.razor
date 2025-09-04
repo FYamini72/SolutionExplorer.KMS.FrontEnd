@@ -1,0 +1,129 @@
+﻿@inject IHttpService _httpService
+@inject IJSRuntime _jsRuntime
+
+@if (showSpinner)
+{
+    <Spinner />
+}
+else
+{
+    <div class="container">
+        <div class=" text-center mt-5 ">
+            <h1>ایجاد کاربر جدید</h1>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-7 mx-auto">
+                <div class="card mt-2 mx-auto p-4 bg-light">
+                    <div class="card-body bg-light">
+                        <div class="container">
+                            <EditForm Model="@Model" OnValidSubmit="HandleValidSubmit">
+                                <DataAnnotationsValidator />
+                                <div class="controls">
+                                    <input type="hidden" @bind-value="Model.Id" />
+                                    
+                                    <div class="row row-margin-10">
+                                        <div class="form-group">
+                                            <label for="Alias">
+                                                @(ApplicationHelper.GetDisplayName<UserCreateDto>(nameof(UserCreateDto.FirstName)))
+                                            </label>
+                                            <InputText class="form-control" @bind-Value="Model.FirstName" />
+                                            <ValidationMessage For="@(() => Model.FirstName)" />
+                                        </div>
+                                    </div>
+                                                                        
+                                    <div class="row row-margin-10">
+                                        <div class="form-group">
+                                            <label for="Alias">
+                                                @(ApplicationHelper.GetDisplayName<UserCreateDto>(nameof(UserCreateDto.LastName)))
+                                            </label>
+                                            <InputText class="form-control" @bind-Value="Model.LastName" />
+                                            <ValidationMessage For="@(() => Model.LastName)" />
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row row-margin-10">
+                                        <div class="form-group">
+                                            <label for="Alias">
+                                                @(ApplicationHelper.GetDisplayName<UserCreateDto>(nameof(UserCreateDto.UserName)))
+                                            </label>
+                                            <InputText class="form-control" @bind-Value="Model.UserName" />
+                                            <ValidationMessage For="@(() => Model.UserName)" />
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row row-margin-10">
+                                        <div class="form-group">
+                                            <label for="Alias">
+                                                @(ApplicationHelper.GetDisplayName<UserCreateDto>(nameof(UserCreateDto.Password)))
+                                            </label>
+                                            <InputText class="form-control" @bind-Value="Model.Password" />
+                                            <ValidationMessage For="@(() => Model.Password)" />
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row row-margin-10">
+                                        <div class="col-md-6">
+                                            <input type="submit" class="btn btn-success btn-send pt-2 btn-block" value="ثبت اطلاعات">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <button @onclick="@(() => Cancel())" class="btn btn-primary btn-send pt-2 btn-block">انصراف</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </EditForm>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public EventCallback<bool> OnSavedChanges { get; set; }
+
+    public UserCreateDto Model { get; set; } = new();
+
+    NotificationClassName ClassName = NotificationClassName.Success;
+    string MessageBody = "عملیات با موفقت انجام شد.";
+    private bool showSpinner = false;
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            showSpinner = true;
+            var apiResult = await _httpService.PostAsync<UserCreateDto, ApiResult<UserDisplayDto>>("api/User/CreateUser", Model);
+            if (!apiResult.IsSuccess)
+            {
+                ClassName = NotificationClassName.Error;
+                MessageBody = apiResult.Message;
+                await ShowMessage();
+                return;
+            }
+
+            showSpinner = false;
+            await OnSavedChanges.InvokeAsync(true);
+        }
+        catch (Exception)
+        {
+            showSpinner = false;
+            ClassName = NotificationClassName.Error;
+            MessageBody = "خطایی رخ داده است. لطفا با پشتیبانی تماس بگیرید.";
+            await ShowMessage();
+        }
+    }
+
+    private async Task Cancel()
+    {
+        showSpinner = false;
+        await OnSavedChanges.InvokeAsync(false);
+    }
+
+    private async Task ShowMessage()
+    {
+        await _jsRuntime.InvokeVoidAsync("showToast", ClassName.ToDisplay(), MessageBody);
+    }
+}

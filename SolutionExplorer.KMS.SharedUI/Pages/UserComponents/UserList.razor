@@ -1,137 +1,116 @@
 ﻿@page "/users"
 @inject IHttpService httpHelper
 @inject IJSRuntime JSRuntime
+@inject NavigationManager NavManager
 @attribute [Authorize]
 
-<Modal @ref="EditModal"
-       Title="ویرایش کاربر"
-       OnSave="SubmitFromEditModal"
-       OnCancel="Cancel"
-       IsBusy="@isSaving">
+@if (showCreateForm)
+{
+    <UserCreate OnSavedChanges="HandleCreateCompleted" />
+}
+else if (showEditForm)
+{
+    <UserEdit OnSavedChanges="HandleCreateCompleted" Id="ItemId" />
+}
+else
+{
+    <div class="mb-3 d-flex flex-wrap gap-2">
+        <!-- دکمه نمایش/مخفی کردن فرم جستجو -->
+        <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#searchFormCollapse" aria-expanded="false" aria-controls="searchFormCollapse">
+            فرم جستجو
+        </button>
 
-    <!-- فرم ویرایش: منطق ذخیره داخل همین کامپوننت است -->
-    <UserEditForm @ref="userEditForm"
-                  EditModel="@editUserModel"
-                  OnCompleted="HandleEditFormCompleted" />
-</Modal>
-
-<Modal @ref="CreateModal"
-       Title="ویرایش کاربر"
-       OnSave="SubmitFromCreateModal"
-       OnCancel="Cancel"
-       IsBusy="@isSaving">
-
-    <!-- فرم ویرایش: منطق ذخیره داخل همین کامپوننت است -->
-    <UserCreateForm @ref="userCreateForm"
-                  CreateModel="@createUserModel"
-                  OnCompleted="HandleCreateFormCompleted" />
-</Modal>
-
-<div class="mb-3 d-flex flex-wrap gap-2">
-    <!-- دکمه نمایش/مخفی کردن فرم جستجو -->
-    <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#searchFormCollapse" aria-expanded="false" aria-controls="searchFormCollapse">
-        فرم جستجو
-    </button>
-
-    <!-- دکمه درج رکورد جدید -->
-    <button class="btn btn-success btn-sm" @onclick="CreateNewItem">
-        درج رکورد جدید
-    </button>
-</div>
-
-<!-- فرم جستجو (با قابلیت collapse) -->
-<div class="collapse" id="searchFormCollapse">
-    <div class="card card-body mb-4 shadow-sm">
-        <form class="row g-3" @onreset="ClearForm">
-            <!-- نام کاربری -->
-            <div class="col-md-4 col-sm-6">
-                <label class="form-label fw-semibold">
-                    @(ApplicationHelper.GetDisplayName<UserSearchDto>(nameof(UserSearchDto.UserName)))
-                </label>
-                <input type="text"
-                       class="form-control"
-                       @bind="searchModel.UserName"
-                       placeholder="مثلاً: admin" />
-            </div>
-
-            <!-- نام -->
-            <div class="col-md-4 col-sm-6">
-                <label class="form-label fw-semibold">
-                    @(ApplicationHelper.GetDisplayName<UserSearchDto>(nameof(UserSearchDto.FirstName)))
-                </label>
-                <input type="text"
-                       class="form-control"
-                       @bind="searchModel.FirstName"
-                       placeholder="مثلاً: علی" />
-            </div>
-
-            <!-- نام خانوادگی -->
-            <div class="col-md-4 col-sm-6">
-                <label class="form-label fw-semibold">
-                    @(ApplicationHelper.GetDisplayName<UserSearchDto>(nameof(UserSearchDto.LastName)))
-                </label>
-                <input type="text"
-                       class="form-control"
-                       @bind="searchModel.LastName"
-                       placeholder="مثلاً: رضایی" />
-            </div>
-
-            <!-- دکمه‌ها -->
-            <div class="col-12 text-end mt-3">
-                <button type="reset"
-                        class="btn btn-outline-secondary px-4 me-2">
-                    <i class="fas fa-times me-1"></i> پاک کردن
-                </button>
-                <button type="button"
-                        class="btn btn-primary px-4"
-                        @onclick="OnSearch">
-                    <i class="fas fa-search me-1"></i> جستجو
-                </button>
-            </div>
-        </form>
+        <!-- دکمه درج رکورد جدید -->
+        <button class="btn btn-success btn-sm" @onclick="CreateNewItem">
+            درج رکورد جدید
+        </button>
     </div>
-</div>
+    <div class="collapse" id="searchFormCollapse">
+        <div class="card card-body mb-4 shadow-sm">
+            <form class="row g-3" @onreset="ClearForm">
+                <!-- نام کاربری -->
+                <div class="col-md-4 col-sm-6">
+                    <label class="form-label fw-semibold">
+                        @(ApplicationHelper.GetDisplayName<UserSearchDto>(nameof(UserSearchDto.UserName)))
+                    </label>
+                    <input type="text"
+                           class="form-control"
+                           @bind="searchModel.UserName"
+                           placeholder="مثلاً: admin" />
+                </div>
 
-<MudTable ServerData="ServerReload" Dense="false" Hover="true" @ref="table">
-    <HeaderContent>
-        <MudTh>@(ApplicationHelper.GetDisplayName<UserDisplayDto>(nameof(UserDisplayDto.UserName)))</MudTh>
-        <MudTh>@(ApplicationHelper.GetDisplayName<UserDisplayDto>(nameof(UserDisplayDto.FirstName)))</MudTh>
-        <MudTh>@(ApplicationHelper.GetDisplayName<UserDisplayDto>(nameof(UserDisplayDto.LastName)))</MudTh>
-        <MudTh>عملیات</MudTh>
-    </HeaderContent>
-    <RowTemplate>
-        <MudTd DataLabel="@(nameof(UserDisplayDto.UserName))">@context.UserName</MudTd>
-        <MudTd DataLabel="@(nameof(UserDisplayDto.FirstName))">@context.FirstName</MudTd>
-        <MudTd DataLabel="@(nameof(UserDisplayDto.LastName))">@context.LastName</MudTd>
-        <MudTd DataLabel="@(nameof(UserDisplayDto.Id))">
-            <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Medium" OnClick="@(() => EditItem(context))"></MudIconButton>
-        </MudTd>
-    </RowTemplate>
-    <NoRecordsContent>
-        <MudText>No matching records found</MudText>
-    </NoRecordsContent>
-    <LoadingContent>
-        <MudText>Loading...</MudText>
-    </LoadingContent>
-    <PagerContent>
-        <MudTablePager />
-    </PagerContent>
-</MudTable>
+                <!-- نام -->
+                <div class="col-md-4 col-sm-6">
+                    <label class="form-label fw-semibold">
+                        @(ApplicationHelper.GetDisplayName<UserSearchDto>(nameof(UserSearchDto.FirstName)))
+                    </label>
+                    <input type="text"
+                           class="form-control"
+                           @bind="searchModel.FirstName"
+                           placeholder="مثلاً: علی" />
+                </div>
+
+                <!-- نام خانوادگی -->
+                <div class="col-md-4 col-sm-6">
+                    <label class="form-label fw-semibold">
+                        @(ApplicationHelper.GetDisplayName<UserSearchDto>(nameof(UserSearchDto.LastName)))
+                    </label>
+                    <input type="text"
+                           class="form-control"
+                           @bind="searchModel.LastName"
+                           placeholder="مثلاً: رضایی" />
+                </div>
+
+                <!-- دکمه‌ها -->
+                <div class="col-12 text-end mt-3">
+                    <button type="reset"
+                            class="btn btn-outline-secondary px-4 me-2">
+                        <i class="fas fa-times me-1"></i> پاک کردن
+                    </button>
+                    <button type="button"
+                            class="btn btn-primary px-4"
+                            @onclick="OnSearch">
+                        <i class="fas fa-search me-1"></i> جستجو
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <MudTable ServerData="ServerReload" Dense="false" Hover="true" @ref="table">
+        <HeaderContent>
+            <MudTh>@(ApplicationHelper.GetDisplayName<UserDisplayDto>(nameof(UserDisplayDto.UserName)))</MudTh>
+            <MudTh>@(ApplicationHelper.GetDisplayName<UserDisplayDto>(nameof(UserDisplayDto.FirstName)))</MudTh>
+            <MudTh>@(ApplicationHelper.GetDisplayName<UserDisplayDto>(nameof(UserDisplayDto.LastName)))</MudTh>
+            <MudTh>عملیات</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="@(nameof(UserDisplayDto.UserName))">@context.UserName</MudTd>
+            <MudTd DataLabel="@(nameof(UserDisplayDto.FirstName))">@context.FirstName</MudTd>
+            <MudTd DataLabel="@(nameof(UserDisplayDto.LastName))">@context.LastName</MudTd>
+            <MudTd DataLabel="@(nameof(UserDisplayDto.Id))">
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Medium" OnClick="@(() => EditItem(context.Id))"></MudIconButton>
+            </MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+            <MudText>No matching records found</MudText>
+        </NoRecordsContent>
+        <LoadingContent>
+            <MudText>Loading...</MudText>
+        </LoadingContent>
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
+}
 
 @code {
     private UserSearchDto searchModel = new();
     private IEnumerable<UserDisplayDto> pagedData;
     private MudTable<UserDisplayDto> table;
 
-    private Modal EditModal;
-    private UserEditForm userEditForm;
-    private UserUpdateDto editUserModel = new();
-    
-    private Modal CreateModal;
-    private UserCreateForm userCreateForm;
-    private UserCreateDto createUserModel = new();
-
-    private bool isSaving = false;
+    private bool showCreateForm = false;
+    private bool showEditForm = false;
+    private int ItemId = 0;
 
     NotificationClassName ClassName = NotificationClassName.Success;
     string MessageBody = "عملیات با موفقت انجام شد.";
@@ -154,108 +133,32 @@
     private void ClearForm()
     {
         searchModel = new UserSearchDto();
-        // Blazor خودش StateHasChanged را بعد از reset فراخوانی می‌کند
+        OnSearch();
     }
-
-    #region Edit User
-
-    private async Task EditItem(UserDisplayDto item)
-    {
-        editUserModel = new UserUpdateDto
-        {
-            Id = item.Id,
-            FirstName = item.FirstName,
-            LastName = item.LastName,
-            NewPassword = null
-        };
-
-        await EditModal.Show();
-    }
-
-    private async Task SubmitFromEditModal()
-    {
-        isSaving = true;
-        StateHasChanged();
-
-        var saved = await userEditForm.SubmitAsync();
-
-        if (!saved)
-        {
-            isSaving = false;
-            StateHasChanged();
-            return;
-        }
-    }
-
-    private async Task HandleEditFormCompleted(ApiResult<UserDisplayDto> result)
-    {
-        isSaving = false;
-
-        if (result?.IsSuccess ?? false)
-        {
-            MessageBody = "عملیات با موفقیت انجام شد.";
-            ClassName = NotificationClassName.Success;
-
-            await table.ReloadServerData();
-            await EditModal.Hide();
-        }
-        else
-        {
-            MessageBody = result?.Message ?? "خطایی رخ داده است. جهت پیگیری با پشتیبانی تماس بگیرید.";
-            ClassName = NotificationClassName.Error;
-        }
-
-        await ShowMessage();
-    }
-
-    #endregion
-
-    #region Create User
 
     private async Task CreateNewItem()
     {
-        createUserModel = new UserCreateDto();
-
-        await CreateModal.Show();
+        showCreateForm = true;
+        showEditForm = false;
     }
 
-    private async Task SubmitFromCreateModal()
+    private async Task EditItem(int id)
     {
-        isSaving = true;
-        StateHasChanged();
-
-        var saved = await userCreateForm.SubmitAsync();
-
-        if (!saved)
-        {
-            isSaving = false;
-            StateHasChanged();
-            return;
-        }
+        ItemId = id;
+        showEditForm = true;
+        showCreateForm = false;
     }
 
-    private async Task HandleCreateFormCompleted(ApiResult<UserDisplayDto> result)
+    private async Task HandleCreateCompleted(bool saved)
     {
-        isSaving = false;
-
-        if (result?.IsSuccess ?? false)
+        showCreateForm = showEditForm = false;
+        if (saved)
         {
-            MessageBody = "عملیات با موفقیت انجام شد.";
             ClassName = NotificationClassName.Success;
-
-            await table.ReloadServerData();
-            await CreateModal.Hide();
+            MessageBody = "عملیات با موفقت انجام شد.";
+            await ShowMessage();
         }
-        else
-        {
-            MessageBody = result?.Message ?? "خطایی رخ داده است. جهت پیگیری با پشتیبانی تماس بگیرید.";
-            ClassName = NotificationClassName.Error;
-        }
-
-        await ShowMessage();
     }
-
-    #endregion
 
     private Task Cancel()
     {
