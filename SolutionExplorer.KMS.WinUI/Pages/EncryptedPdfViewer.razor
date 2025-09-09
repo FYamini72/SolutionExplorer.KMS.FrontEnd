@@ -1,96 +1,64 @@
-﻿@page "/pdf-viewer/{FilePath}"
-@using System.IO
-@using Microsoft.JSInterop
+﻿@page "/pdf-viewer/{DocumentId:int}"
 @inject IJSRuntime JS
+@inject HttpClient Http
 
-<div id="@_containerId" class="encrypted-pdf-viewer" style="width:@Width; height:@Height; border:1px solid #e0e0e0; border-radius:6px; overflow:auto;">
-    <!-- toolbar و صفحات توسط JS ساخته می‌شود -->
+<Spinner @ref="spinner" />
+
+<div id="@_containerId" class="encrypted-pdf-viewer"
+     style="width:@Width; height:@Height; border:1px solid #e0e0e0; border-radius:6px; overflow:auto;">
 </div>
 
 @code {
-    [Parameter] public string FilePath { get; set; } = string.Empty; // مثال: "invoice1.pdf.enc"
+    [Parameter] public int DocumentId { get; set; }   // از آی‌دی سند استفاده می‌کنیم
     [Parameter] public string Height { get; set; } = "600px";
     [Parameter] public string Width { get; set; } = "100%";
-    [Parameter] public double InitialScale { get; set; } = 1.0; // می‌تونی مقدار اولیه زوم بدهی
+    [Parameter] public double InitialScale { get; set; } = 1.0;
+
+    private Spinner spinner = new();
 
     private string _containerId = "epv_" + Guid.NewGuid().ToString("N");
-    private DotNetObjectReference<EncryptedPdfViewer>? _objRef;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender) return;
+        //if (!firstRender) return;
 
-        if (string.IsNullOrWhiteSpace(FilePath))
+        if (DocumentId <= 0)
         {
-            Console.WriteLine("EncryptedPdfViewer: FilePath is empty.");
-            return;
-        }
-
-        string fullPath = Path.Combine(
-            @"C:\Users\Farzam\source\repos\SolutionExplorer.KMS\SolutionExplorer.KMS.WinUI\wwwroot\EncryptedFiles",
-            FilePath);
-
-        if (!System.IO.File.Exists(fullPath))
-        {
-            Console.WriteLine($"EncryptedPdfViewer: file not found: {fullPath}");
+            Console.WriteLine("EncryptedPdfViewer: DocumentId is invalid.");
             return;
         }
 
         try
         {
-            using var decryptedStream = Utilities.EncryptedPdfService.DecryptPdfToStream(fullPath);
+            spinner.ShowLoadingSpinner();
+            // وب سرویس رو صدا بزن
+            var response = await Http.GetAsync($"http://185.7.212.79:5000/api/Document/generate-encrypted-pdf/{DocumentId}");
+            //var response = await Http.GetAsync($"http://185.7.212.79:9091/api/Document/generate-encrypted-pdf/{DocumentId}");
+            //var response = await Http.GetAsync($"https://localhost:7180/api/Document/generate-encrypted-pdf/{DocumentId}");
+            if (!response.IsSuccessStatusCode)
+            {
+                Console.WriteLine($"EncryptedPdfViewer: request failed: {response.StatusCode}");
+                return;
+            }
+
+            // داده انکریپت شده (بایت‌ها) رو بگیر
+            var encryptedBytes = await response.Content.ReadAsByteArrayAsync();
+
+            // دیکریپت کن
+            using var encryptedStream = new MemoryStream(encryptedBytes);
+            using var decryptedStream = Utilities.EncryptedPdfService.DecryptPdfToStream(encryptedStream);
+
             byte[] buffer = decryptedStream.ToArray();
             string base64 = Convert.ToBase64String(buffer);
 
-            // ✅ فراخوانی نسخه جدید JS
+            // نمایش در مرورگر
             await JS.InvokeVoidAsync("encryptedPdfViewer.loadPdf", _containerId, base64);
+
+            spinner.HideLoadingSpinner();
         }
         catch (Exception ex)
         {
             Console.WriteLine("EncryptedPdfViewer Error: " + ex);
         }
     }
-
-
-    // protected override async Task OnAfterRenderAsync(bool firstRender)
-    // {
-    //     if (!firstRender) return;
-
-    //     if (string.IsNullOrWhiteSpace(FilePath))
-    //     {
-    //         Console.WriteLine("EncryptedPdfViewer: FilePath is empty.");
-    //         return;
-    //     }
-
-    //     // full path inside wwwroot/EncryptedFiles
-    //     string basePath = Directory.GetCurrentDirectory();
-    //     Console.WriteLine(basePath);
-    //     string fullPath = Path.Combine(@"C:\Users\Farzam\source\repos\SolutionExplorer.KMS\SolutionExplorer.KMS.WinUI\wwwroot\EncryptedFiles", FilePath);
-    //     Console.WriteLine(fullPath);
-    //     if (!System.IO.File.Exists(fullPath))
-    //     {
-    //         Console.WriteLine($"EncryptedPdfViewer: file not found: {fullPath}");
-    //         return;
-    //     }
-
-    //     try
-    //     {
-    //         using var decryptedStream = Utilities.EncryptedPdfService.DecryptPdfToStream(fullPath);
-    //         byte[] buffer = decryptedStream.ToArray(); // کل فایل در حافظه
-    //         string base64 = Convert.ToBase64String(buffer);
-
-    //         var options = new Dictionary<string, object>
-    //         {
-    //             ["initialScale"] = InitialScale,
-    //             ["scaleStep"] = 0.25
-    //         };
-
-    //         // فراخوانی JS برای بارگذاری PDF
-    //         await JS.InvokeVoidAsync("encryptedPdfViewer.load", _containerId, base64, options);
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         Console.WriteLine("EncryptedPdfViewer Error: " + ex);
-    //     }
-    // }
 }

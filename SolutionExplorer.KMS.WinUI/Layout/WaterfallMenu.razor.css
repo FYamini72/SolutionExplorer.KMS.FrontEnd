@@ -1,0 +1,133 @@
+﻿/* پشتیبانی از زیرمنوی چندسطحی */
+.dropdown-submenu {
+    position: relative;
+}
+
+.dropdown-submenu > .dropdown-menu {
+    top: 0;
+    right: 100%;
+    margin-top: -6px;
+    margin-right: -1px;
+    display: none;
+    position: absolute;
+    /* ویژگی‌های جدید برای تطبیق با متن طولانی */
+    min-width: max-content; /* عرض بر اساس محتوا */
+    width: auto; /* عرض خودکار */
+    max-width: 600px; /* حداکثر عرض */
+}
+
+.dropdown-submenu:hover > .dropdown-menu {
+    display: block;
+}
+
+/* برای نمایش زیرمنو در سمت چپ در صورت نیاز */
+.dropdown-submenu.pull-left {
+    float: none;
+}
+
+.dropdown-submenu.pull-left > .dropdown-menu {
+    left: -100%;
+    margin-left: 10px;
+    right: auto;
+}
+
+/* بهبود نمایش برای منوهای چندسطحی */
+.dropdown-menu .dropdown-menu {
+    top: 0;
+    right: 100%;
+    margin-top: -6px;
+    margin-right: -1px;
+}
+
+/* پشتیبانی از نمایش در حالت موبایل */
+@media (max-width: 991.98px) {
+    .dropdown-submenu > .dropdown-menu {
+        position: static;
+        margin-top: 0;
+        margin-right: 0;
+        width: 100%;
+        display: none;
+        min-width: unset; /* غیرفعال کردن min-width در موبایل */
+        max-width: unset; /* غیرفعال کردن max-width در موبایل */
+    }
+
+    .dropdown-submenu:hover > .dropdown-menu {
+        display: block;
+    }
+
+    .navbar-nav .dropdown-menu {
+        position: static;
+        float: none;
+    }
+}
+
+/* بهبود ظاهر منوها */
+.dropdown-menu {
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
+    /* ویژگی‌های جدید برای تطبیق با متن طولانی */
+    padding: 0.5rem 0;
+    white-space: normal; /* اجازه شکستن خط */
+}
+
+.dropdown-item {
+    white-space: normal; /* اجازه شکستن خط */
+    padding: 0.5rem 1.5rem;
+    /* ویژگی‌های جدید برای تطبیق با متن طولانی */
+    word-wrap: break-word; /* شکستن کلمات طولانی */
+    overflow-wrap: break-word; /* استاندارد جدید برای شکستن کلمات */
+}
+
+/* پیکان برای آیتم‌های دارای زیرمنو */
+.dropdown-submenu > a:after {
+    display: block;
+    content: " ";
+    float: left;
+    width: 0;
+    height: 0;
+    border-color: transparent;
+    border-style: solid;
+    border-width: 5px 5px 5px 0;
+    border-right-color: #6c757d;
+    margin-top: 5px;
+    margin-right: -10px;
+}
+
+.dropdown-submenu:hover > a:after {
+    border-right-color: #fff;
+}
+
+/* بهبود فاصله‌ها و تراز */
+ul.dropdown-menu {
+    line-height: 1.8;
+    min-width: 220px;
+}
+
+.dropdown-menu .dropdown-item {
+    padding-right: 1.5rem;
+    padding-left: 1.5rem;
+}
+
+/* پشتیبانی از متن‌های طولانی - کلاس جدید */
+.dropdown-menu.long-text {
+    min-width: max-content;
+    width: auto;
+}
+
+.dropdown-item.long-text-item {
+    white-space: normal;
+    word-break: break-word;
+    max-width: 500px; /* حداکثر عرض برای آیتم‌ها */
+}
+
+/* استایل برای منوهای چند سطحی */
+.dropdown-menu .dropdown-menu {
+    min-width: max-content;
+    width: auto;
+}
+
+/* برای منوهای سطح سوم و بالاتر */
+.dropdown-menu .dropdown-menu .dropdown-menu {
+    min-width: max-content;
+    width: auto;
+}

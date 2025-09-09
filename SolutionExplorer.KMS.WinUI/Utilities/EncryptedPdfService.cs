@@ -32,5 +32,27 @@ namespace SolutionExplorer.KMS.WinUI.Utilities
             decryptedStream.Position = 0;
             return decryptedStream;
         }
+
+        public static MemoryStream DecryptPdfToStream(Stream encryptedStream)
+        {
+            if (encryptedStream == null || encryptedStream.Length == 0)
+                throw new ArgumentException("Invalid encrypted stream");
+
+            MemoryStream decryptedStream = new MemoryStream();
+
+            using (Aes aes = Aes.Create())
+            {
+                aes.Key = EncryptionKeys.Key;
+                aes.IV = EncryptionKeys.IV;
+
+                using (CryptoStream cryptoStream = new CryptoStream(encryptedStream, aes.CreateDecryptor(), CryptoStreamMode.Read))
+                {
+                    cryptoStream.CopyTo(decryptedStream);
+                }
+            }
+
+            decryptedStream.Position = 0;
+            return decryptedStream;
+        }
     }
 }

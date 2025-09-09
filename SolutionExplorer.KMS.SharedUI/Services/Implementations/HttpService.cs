@@ -12,7 +12,9 @@ namespace SolutionExplorer.KMS.SharedUI.Services.Implementations
 
         public HttpService(HttpClient httpClient, ILocalStorageService localStorageService)
         {
-            _baseUrl = "https://localhost:7180/";
+            _baseUrl = "http://185.7.212.79:5000/";
+            //_baseUrl = "http://185.7.212.79:9091/";
+            //_baseUrl = "https://localhost:7180/";
             _httpClient = httpClient;
             _localStorageService = localStorageService;
         }
