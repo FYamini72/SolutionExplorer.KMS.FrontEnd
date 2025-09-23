@@ -1,82 +1,71 @@
 ﻿@page "/users"
 @inject IHttpService httpHelper
 @inject IJSRuntime JSRuntime
-@inject NavigationManager NavManager
 @attribute [Authorize]
 
-@if (showCreateForm)
+@if (formState == FormState.Create)
 {
     <UserCreate OnSavedChanges="HandleCreateCompleted" />
 }
-else if (showEditForm)
+else if (formState == FormState.Edit)
 {
-    <UserEdit OnSavedChanges="HandleCreateCompleted" Id="ItemId" />
+    <UserEdit OnSavedChanges="HandleCreateCompleted" Id="@id" />
 }
 else
 {
     <div class="mb-3 d-flex flex-wrap gap-2">
-        <!-- دکمه نمایش/مخفی کردن فرم جستجو -->
+        <button class="btn btn-outline-info btn-sm" type="button" @onclick="OnSearch">
+            <span aria-hidden="true" style="vertical-align: sub;" class="bi bi-arrow-clockwise"></span>
+        </button>
+
         <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#searchFormCollapse" aria-expanded="false" aria-controls="searchFormCollapse">
+            <i class="bi bi-search"></i> 
             فرم جستجو
         </button>
 
-        <!-- دکمه درج رکورد جدید -->
         <button class="btn btn-success btn-sm" @onclick="CreateNewItem">
+            <i class="bi bi-plus-circle"></i>
             درج رکورد جدید
         </button>
     </div>
+
     <div class="collapse" id="searchFormCollapse">
         <div class="card card-body mb-4 shadow-sm">
             <form class="row g-3" @onreset="ClearForm">
-                <!-- نام کاربری -->
                 <div class="col-md-4 col-sm-6">
                     <label class="form-label fw-semibold">
                         @(ApplicationHelper.GetDisplayName<UserSearchDto>(nameof(UserSearchDto.UserName)))
                     </label>
-                    <input type="text"
-                           class="form-control"
-                           @bind="searchModel.UserName"
-                           placeholder="مثلاً: admin" />
+                    <input type="text" class="form-control" @bind="searchModel.UserName" placeholder="مثلاً: admin" />
                 </div>
 
-                <!-- نام -->
                 <div class="col-md-4 col-sm-6">
                     <label class="form-label fw-semibold">
                         @(ApplicationHelper.GetDisplayName<UserSearchDto>(nameof(UserSearchDto.FirstName)))
                     </label>
-                    <input type="text"
-                           class="form-control"
-                           @bind="searchModel.FirstName"
-                           placeholder="مثلاً: علی" />
+                    <input type="text" class="form-control" @bind="searchModel.FirstName" placeholder="مثلاً: علی" />
                 </div>
 
-                <!-- نام خانوادگی -->
                 <div class="col-md-4 col-sm-6">
                     <label class="form-label fw-semibold">
                         @(ApplicationHelper.GetDisplayName<UserSearchDto>(nameof(UserSearchDto.LastName)))
                     </label>
-                    <input type="text"
-                           class="form-control"
-                           @bind="searchModel.LastName"
-                           placeholder="مثلاً: رضایی" />
+                    <input type="text" class="form-control" @bind="searchModel.LastName" placeholder="مثلاً: رضایی" />
                 </div>
 
-                <!-- دکمه‌ها -->
                 <div class="col-12 text-end mt-3">
-                    <button type="reset"
-                            class="btn btn-outline-secondary px-4 me-2">
-                        <i class="fas fa-times me-1"></i> پاک کردن
+                    <button type="reset" class="btn btn-outline-secondary px-4 me-2">
+                        <i class="bi bi-trash"></i> پاک کردن
                     </button>
-                    <button type="button"
-                            class="btn btn-primary px-4"
-                            @onclick="OnSearch">
-                        <i class="fas fa-search me-1"></i> جستجو
+                    <button type="button" class="btn btn-primary px-4" @onclick="OnSearch">
+                        <i class="bi bi-search"></i> جستجو
                     </button>
                 </div>
             </form>
         </div>
     </div>
-    <MudTable ServerData="ServerReload" Dense="false" Hover="true" @ref="table">
+
+    <MudTable ServerData="ServerReload" Dense="true" Striped="true" Hover="true" @ref="table">
         <HeaderContent>
             <MudTh>@(ApplicationHelper.GetDisplayName<UserDisplayDto>(nameof(UserDisplayDto.UserName)))</MudTh>
             <MudTh>@(ApplicationHelper.GetDisplayName<UserDisplayDto>(nameof(UserDisplayDto.FirstName)))</MudTh>
@@ -104,13 +93,12 @@ else
 }
 
 @code {
-    private UserSearchDto searchModel = new();
-    private IEnumerable<UserDisplayDto> pagedData;
-    private MudTable<UserDisplayDto> table;
+    enum FormState { None, Create, Edit }
+    private FormState formState = FormState.None;
+    private int id;
 
-    private bool showCreateForm = false;
-    private bool showEditForm = false;
-    private int ItemId = 0;
+    private UserSearchDto searchModel = new();
+    private MudTable<UserDisplayDto> table;
 
     NotificationClassName ClassName = NotificationClassName.Success;
     string MessageBody = "عملیات با موفقت انجام شد.";
@@ -119,16 +107,14 @@ else
     {
         searchModel.CalculateTakeAndSkip(state.Page, state.PageSize);
         var apiResult = await httpHelper
-            .GetByFilterAsync<UserSearchDto, ApiResult<BaseGridDto<UserDisplayDto>>>(
-                "api/user/GetByFilter",
-                searchModel);
+            .GetByFilterAsync<UserSearchDto, ApiResult<BaseGridDto<UserDisplayDto>>>("api/user/GetByFilter", searchModel);
 
-        pagedData = apiResult?.Data?.Data ?? new List<UserDisplayDto>();
-        var totalItems = apiResult?.Data?.TotalCount ?? 0;
-        return new TableData<UserDisplayDto>() { TotalItems = totalItems, Items = pagedData };
+        var items = apiResult?.Data?.Data ?? Enumerable.Empty<UserDisplayDto>();
+        var total = apiResult?.Data?.TotalCount ?? 0;
+        return new TableData<UserDisplayDto> { TotalItems = total, Items = items };
     }
 
-    private void OnSearch() => table.ReloadServerData();
+    private void OnSearch() => table?.ReloadServerData();
 
     private void ClearForm()
     {
@@ -136,37 +122,24 @@ else
         OnSearch();
     }
 
-    private async Task CreateNewItem()
-    {
-        showCreateForm = true;
-        showEditForm = false;
-    }
+    private void CreateNewItem() => formState = FormState.Create;
 
-    private async Task EditItem(int id)
+    private void EditItem(int itemId)
     {
-        ItemId = id;
-        showEditForm = true;
-        showCreateForm = false;
+        this.id = itemId;
+        formState = FormState.Edit;
     }
 
     private async Task HandleCreateCompleted(bool saved)
     {
-        showCreateForm = showEditForm = false;
-        if (saved)
-        {
-            ClassName = NotificationClassName.Success;
-            MessageBody = "عملیات با موفقت انجام شد.";
-            await ShowMessage();
-        }
+        formState = FormState.None;
+        if (!saved) return;
+
+        ClassName = NotificationClassName.Success;
+        MessageBody = "عملیات با موفقت انجام شد.";
+        await ShowMessage();
+        table?.ReloadServerData();
     }
 
-    private Task Cancel()
-    {
-        return Task.CompletedTask;
-    }
-
-    private async Task ShowMessage()
-    {
-        await JSRuntime.InvokeVoidAsync("showToast", ClassName.ToDisplay(), MessageBody);
-    }
+    private Task ShowMessage() => JSRuntime.InvokeVoidAsync("showToast", ClassName.ToDisplay(), MessageBody).AsTask();
 }

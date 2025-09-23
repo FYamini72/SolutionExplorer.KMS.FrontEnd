@@ -8,7 +8,7 @@
 else
 {
     <div class="container">
-        <div class=" text-center mt-5 ">
+        <div class="text-center mt-5">
             <h1>ویرایش کاربر</h1>
         </div>
 
@@ -24,7 +24,7 @@ else
 
                                     <div class="row row-margin-10">
                                         <div class="form-group">
-                                            <label for="Alias">
+                                            <label>
                                                 @(ApplicationHelper.GetDisplayName<UserUpdateDto>(nameof(UserUpdateDto.FirstName)))
                                             </label>
                                             <InputText class="form-control" @bind-Value="Model.FirstName" />
@@ -34,7 +34,7 @@ else
 
                                     <div class="row row-margin-10">
                                         <div class="form-group">
-                                            <label for="Alias">
+                                            <label>
                                                 @(ApplicationHelper.GetDisplayName<UserUpdateDto>(nameof(UserUpdateDto.LastName)))
                                             </label>
                                             <InputText class="form-control" @bind-Value="Model.LastName" />
@@ -44,7 +44,7 @@ else
 
                                     <div class="row row-margin-10">
                                         <div class="form-group">
-                                            <label for="Alias">
+                                            <label>
                                                 @(ApplicationHelper.GetDisplayName<UserUpdateDto>(nameof(UserUpdateDto.NewPassword)))
                                             </label>
                                             <InputText class="form-control" @bind-Value="Model.NewPassword" />
@@ -54,10 +54,10 @@ else
 
                                     <div class="row row-margin-10">
                                         <div class="col-md-6">
-                                            <input type="submit" class="btn btn-success btn-send pt-2 btn-block" value="ثبت اطلاعات">
+                                            <input type="submit" class="btn btn-success btn-send pt-2 btn-block" value="ثبت اطلاعات" />
                                         </div>
                                         <div class="col-md-6">
-                                            <button @onclick="@(() => Cancel())" class="btn btn-primary btn-send pt-2 btn-block">انصراف</button>
+                                            <button type="button" @onclick="Cancel" class="btn btn-primary btn-send pt-2 btn-block">انصراف</button>
                                         </div>
                                     </div>
                                 </div>
@@ -71,62 +71,76 @@ else
 }
 
 @code {
-    [Parameter]
-    public EventCallback<bool> OnSavedChanges { get; set; }
 
-    [Parameter]
-    public int Id { get; set; }
+    [Parameter] public EventCallback<bool> OnSavedChanges { get; set; }
+    [Parameter] public int Id { get; set; }
 
-    public UserUpdateDto Model { get; set; }
+    public UserUpdateDto Model { get; set; } = new();
 
     NotificationClassName ClassName = NotificationClassName.Success;
     string MessageBody = "عملیات با موفقت انجام شد.";
-    private bool showSpinner = false;
+    private bool showSpinner;
 
     protected override async Task OnParametersSetAsync()
     {
         showSpinner = true;
 
-        var apiResult = await _httpService.GetAsync<ApiResult<UserDisplayDto>>($"api/User/{Id}");
-        Model = apiResult.Data.Adapt<UserUpdateDto>();
+        try
+        {
+            var apiResult = await _httpService.GetAsync<ApiResult<UserDisplayDto>>($"api/User/{Id}");
 
-        showSpinner = false;
+            if (apiResult?.IsSuccess ?? false)
+            {
+                Model = apiResult?.Data?.Adapt<UserUpdateDto>() ?? new UserUpdateDto();
+            }
+            else
+            {
+                ClassName = NotificationClassName.Error;
+                MessageBody = apiResult?.Message ?? "خطایی رخ داده است. لطفا با پشتیبانی تماس بگیرید.";
+                await ShowMessage();
+            }
+        }
+        catch (Exception)
+        {
+            ClassName = NotificationClassName.Error;
+            MessageBody = "خطا در دریافت اطلاعات کاربر.";
+            await ShowMessage();
+        }
+        finally
+        {
+            showSpinner = false;
+        }
     }
 
     private async Task HandleValidSubmit()
     {
+        showSpinner = true;
         try
         {
-            showSpinner = true;
             var apiResult = await _httpService.PutAsync<UserUpdateDto, ApiResult<UserDisplayDto>>("api/User/UpdateUser", Model);
-            if (!apiResult.IsSuccess)
+            if (!apiResult?.IsSuccess ?? false)
             {
                 ClassName = NotificationClassName.Error;
-                MessageBody = apiResult.Message;
+                MessageBody = apiResult?.Message ?? "خطایی رخ داده است. لطفا با پشتیبانی تماس بگیرید.";
                 await ShowMessage();
                 return;
             }
 
-            showSpinner = false;
             await OnSavedChanges.InvokeAsync(true);
         }
         catch (Exception)
         {
-            showSpinner = false;
             ClassName = NotificationClassName.Error;
             MessageBody = "خطایی رخ داده است. لطفا با پشتیبانی تماس بگیرید.";
             await ShowMessage();
         }
+        finally
+        {
+            showSpinner = false;
+        }
     }
 
-    private async Task Cancel()
-    {
-        showSpinner = false;
-        await OnSavedChanges.InvokeAsync(false);
-    }
+    private Task Cancel() => OnSavedChanges.InvokeAsync(false);
 
-    private async Task ShowMessage()
-    {
-        await _jsRuntime.InvokeVoidAsync("showToast", ClassName.ToDisplay(), MessageBody);
-    }
+    private Task ShowMessage() => _jsRuntime.InvokeVoidAsync("showToast", ClassName.ToDisplay(), MessageBody).AsTask();
 }
