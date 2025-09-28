@@ -14,7 +14,7 @@ namespace SolutionExplorer.KMS.WinUI
                     Dock = DockStyle.Fill,
                     HostPage = "wwwroot/index.html",
                     Services = Startup.Services!,
-                    StartPath = "/users"
+                    StartPath = "/"
                 };
 
                 bwv.RootComponents.Add<App>("#app");
