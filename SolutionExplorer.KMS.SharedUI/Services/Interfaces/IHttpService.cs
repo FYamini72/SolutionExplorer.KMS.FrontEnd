@@ -44,5 +44,15 @@
         /// <param name="addAuthToken">آیا توکن احراز هویت به درخواست اضافه شود؟ (پیش‌فرض: true)</param>
         /// <returns>اطلاعات بازگشتی که به مدل مشخص شده تبدیل شده است.</returns>
         Task<TResponse?> PutAsync<TRequest, TResponse>(string endPoint, TRequest model, bool addAuthToken = true);
+
+        /// <summary>
+        /// به روش آسنکرون، یک درخواست اچ تی تی پی با متد دلت را ارسال می‌کند
+        /// </summary>
+        /// <typeparam name="TRequest">نوع اطلاعات ارسالی</typeparam>
+        /// <typeparam name="TResponse">نوع بازگشتی سرویس</typeparam>
+        /// <param name="endpoint">آدرس سرویس</param>
+        /// <param name="addAuthToken">آیا توکن احراز هویت به درخواست اضافه شود؟ (پیش‌فرض: true)</param>
+        /// <returns>اطلاعات بازگشتی که به مدل مشخص شده تبدیل شده است.</returns>
+        Task<TResponse?> DeleteAsync<TResponse>(string endPoint, bool addAuthToken = true);
     }
 }

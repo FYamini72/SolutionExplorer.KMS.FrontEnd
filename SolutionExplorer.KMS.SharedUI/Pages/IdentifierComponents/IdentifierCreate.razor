@@ -1,0 +1,229 @@
+﻿@inject IHttpService _httpService
+@inject IJSRuntime _jsRuntime
+
+@if (showSpinner)
+{
+    <Spinner />
+}
+else
+{
+    <div class="container">
+        <div class="text-center mt-5">
+            <h1>ایجاد کاربر جدید</h1>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-7 mx-auto">
+                <div class="card mt-2 mx-auto p-4 bg-light">
+                    <div class="card-body bg-light">
+                        <div class="container">
+                            <EditForm Model="@Model" OnValidSubmit="HandleValidSubmit">
+                                <DataAnnotationsValidator />
+                                <div class="controls">
+                                    <input type="hidden" @bind-value="Model.Id" />
+
+                                    <div class="row row-margin-10">
+                                        <div class="form-group">
+                                            <label>
+                                                @(ApplicationHelper.GetDisplayName<IdentifierCreateDto>(nameof(IdentifierCreateDto.Title)))
+                                            </label>
+                                            <InputText class="form-control" @bind-Value="Model.Title" />
+                                            <ValidationMessage For="@(() => Model.Title)" />
+                                        </div>
+                                    </div>
+
+                                    <div class="row row-margin-10">
+                                        <div class="form-group">
+                                            <label>
+                                                @(ApplicationHelper.GetDisplayName<IdentifierCreateDto>(nameof(IdentifierCreateDto.DocumentNumber)))
+                                            </label>
+                                            <InputText class="form-control" @bind-Value="Model.DocumentNumber" />
+                                            <ValidationMessage For="@(() => Model.DocumentNumber)" />
+                                        </div>
+                                    </div>
+
+                                    <div class="row row-margin-10">
+                                        <div class="form-group">
+                                            <label>
+                                                @(ApplicationHelper.GetDisplayName<IdentifierCreateDto>(nameof(IdentifierCreateDto.Category)))
+                                            </label>
+                                            <InputSelect class="form-select" @bind-value="Model.Category">
+                                                <option value="">انتخاب کنید...</option>
+                                                @foreach (var item in Enum.GetValues<DocumentCategory>())
+                                                {
+                                                    <option value="@item">@item.ToDisplay()</option>
+                                                }
+                                            </InputSelect>
+                                            <ValidationMessage For="@(() => Model.Category)" />
+                                        </div>
+                                    </div>
+
+                                    <div class="row row-margin-10">
+                                        <div class="form-group">
+                                            <label>
+                                                @(ApplicationHelper.GetDisplayName<IdentifierCreateDto>(nameof(IdentifierCreateDto.EditNo)))
+                                            </label>
+                                            <InputText class="form-control" @bind-Value="Model.EditNo" />
+                                            <ValidationMessage For="@(() => Model.EditNo)" />
+                                        </div>
+                                    </div>
+
+                                    <div class="row row-margin-10">
+                                        <div class="form-group">
+                                            <label>
+                                                @(ApplicationHelper.GetDisplayName<IdentifierCreateDto>(nameof(IdentifierCreateDto.ProducerUserId)))
+                                            </label>
+                                            <InputSelect class="form-select" @bind-value="Model.ProducerUserId">
+                                                <option value="">انتخاب کنید...</option>
+                                                @foreach (var user in UsersKeyValue)
+                                                {
+                                                    <option value="@user.Key">@user.Value</option>
+                                                }
+                                            </InputSelect>
+                                            <ValidationMessage For="@(() => Model.ProducerUserId)" />
+                                        </div>
+                                    </div>
+
+                                    <div class="row row-margin-10">
+                                        <div class="form-group">
+                                            <label>
+                                                @(ApplicationHelper.GetDisplayName<IdentifierCreateDto>(nameof(IdentifierCreateDto.FirstConfirmerUserId)))
+                                            </label>
+                                            <InputSelect class="form-select" @bind-value="Model.FirstConfirmerUserId">
+                                                <option value="">انتخاب کنید...</option>
+                                                @foreach (var user in UsersKeyValue)
+                                                {
+                                                    <option value="@user.Key">@user.Value</option>
+                                                }
+                                            </InputSelect>
+                                            <ValidationMessage For="@(() => Model.FirstConfirmerUserId)" />
+                                        </div>
+                                    </div>
+
+                                    <div class="row row-margin-10">
+                                        <div class="form-group">
+                                            <label>
+                                                @(ApplicationHelper.GetDisplayName<IdentifierCreateDto>(nameof(IdentifierCreateDto.SecondConfirmerUserId)))
+                                            </label>
+                                            <InputSelect class="form-select" @bind-value="Model.SecondConfirmerUserId">
+                                                <option value="">انتخاب کنید...</option>
+                                                @foreach (var user in UsersKeyValue)
+                                                {
+                                                    <option value="@user.Key">@user.Value</option>
+                                                }
+                                            </InputSelect>
+                                            <ValidationMessage For="@(() => Model.SecondConfirmerUserId)" />
+                                        </div>
+                                    </div>
+
+                                    <div class="row row-margin-10">
+                                        <div class="col-md-6">
+                                            <input type="submit" class="btn btn-success btn-send pt-2 btn-block" value="ثبت اطلاعات" />
+                                        </div>
+                                        <div class="col-md-6">
+                                            <button type="button" @onclick="Cancel" class="btn btn-primary btn-send pt-2 btn-block">انصراف</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </EditForm>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public EventCallback<bool> OnSavedChanges { get; set; }
+    [Parameter] public int? Id { get; set; } = null;
+
+    public IdentifierCreateDto Model { get; set; } = new();
+    private List<KeyValuePair<int, string>> UsersKeyValue = new();
+
+    NotificationClassName ClassName = NotificationClassName.Success;
+    string MessageBody = "عملیات با موفقت انجام شد.";
+    private bool showSpinner;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if(!Id.HasValue)
+        {
+            return;
+        }
+
+        showSpinner = true;
+
+        try
+        {
+            var apiResult = await _httpService.GetAsync<ApiResult<IdentifierDisplayDto>>($"api/Identifier/{Id}");
+
+            if (apiResult?.IsSuccess ?? false)
+            {
+                Model = apiResult?.Data?.Adapt<IdentifierCreateDto>() ?? new();
+            }
+            else
+            {
+                ClassName = NotificationClassName.Error;
+                MessageBody = apiResult?.Message ?? "خطایی رخ داده است. لطفا با پشتیبانی تماس بگیرید.";
+                await ShowMessage();
+            }
+        }
+        catch (Exception)
+        {
+            ClassName = NotificationClassName.Error;
+            MessageBody = "خطا در دریافت اطلاعات کاربر.";
+            await ShowMessage();
+        }
+        finally
+        {
+            showSpinner = false;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var apiResult = await _httpService
+            .GetByFilterAsync<IdentifierSearchDto, ApiResult<List<KeyValuePair<int, string>>>>("api/User/GetByFilterForDropDown", new());
+
+        UsersKeyValue = apiResult?.Data?.ToList() ?? new();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        showSpinner = true;
+        try
+        {
+            ApiResult<IdentifierDisplayDto>? apiResult = null;
+
+            if (Model.Id > 0)
+                apiResult = await _httpService.PutAsync<IdentifierCreateDto, ApiResult<IdentifierDisplayDto>>("api/Identifier", Model);
+            else
+                apiResult = await _httpService.PostAsync<IdentifierCreateDto, ApiResult<IdentifierDisplayDto>>("api/Identifier", Model);
+
+            if (!apiResult?.IsSuccess ?? false)
+            {
+                ClassName = NotificationClassName.Error;
+                MessageBody = apiResult?.Message ?? "خطایی رخ داده است. لطفا با پشتیبانی تماس بگیرید.";
+                await ShowMessage();
+                return;
+            }
+
+            await OnSavedChanges.InvokeAsync(true);
+        }
+        catch (Exception)
+        {
+            ClassName = NotificationClassName.Error;
+            MessageBody = "خطایی رخ داده است. لطفا با پشتیبانی تماس بگیرید.";
+            await ShowMessage();
+        }
+        finally
+        {
+            showSpinner = false;
+        }
+    }
+
+    private Task Cancel() => OnSavedChanges.InvokeAsync(false);
+
+    private Task ShowMessage() => _jsRuntime.InvokeVoidAsync("showToast", ClassName.ToDisplay(), MessageBody).AsTask();
+}

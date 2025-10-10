@@ -12,9 +12,9 @@ namespace SolutionExplorer.KMS.SharedUI.Services.Implementations
 
         public HttpService(HttpClient httpClient, ILocalStorageService localStorageService)
         {
-            _baseUrl = "http://185.7.212.79:5000/";
+            //_baseUrl = "http://185.7.212.79:5000/";
             //_baseUrl = "http://185.7.212.79:9091/";
-            //_baseUrl = "https://localhost:7180/";
+            _baseUrl = "https://localhost:7180/";
             _httpClient = httpClient;
             _localStorageService = localStorageService;
         }
@@ -112,6 +112,29 @@ namespace SolutionExplorer.KMS.SharedUI.Services.Implementations
             var serializedModel = JsonConvert.SerializeObject(model);
             var content = new StringContent(serializedModel, System.Text.Encoding.UTF8, "application/json");
             request.Content = content;
+            var response = await _httpClient.SendAsync(request);
+            if (response.IsSuccessStatusCode)
+            {
+                var responseContent = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<TResponse>(responseContent ?? "") ?? default(TResponse);
+            }
+            return default(TResponse);
+        }
+
+        /// <inheritdoc />
+        public async Task<TResponse?> DeleteAsync<TResponse>(string endPoint, bool addAuthToken = true)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Delete, _baseUrl + endPoint);
+
+            if (addAuthToken)
+            {
+                var token = await _localStorageService.GetItemAsync<string>("authToken");
+                if (!string.IsNullOrEmpty(token))
+                {
+                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                }
+            }
+
             var response = await _httpClient.SendAsync(request);
             if (response.IsSuccessStatusCode)
             {
