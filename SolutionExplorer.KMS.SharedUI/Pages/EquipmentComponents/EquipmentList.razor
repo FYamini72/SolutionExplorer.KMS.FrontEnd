@@ -1,11 +1,12 @@
-﻿@page "/Identifiers"
+﻿@page "/Equipment"
+@using SolutionExplorer.KMS.SharedUI.Dtos.EquipmentDtos
 @inject IHttpService httpHelper
 @inject IJSRuntime JSRuntime
 @attribute [Authorize]
 
 @if (formState is FormState.Edit or FormState.Create)
 {
-    <IdentifierCreate OnSavedChanges="HandleCreateCompleted" Id="@id" />
+    <EquipmentCreate OnSavedChanges="HandleCreateCompleted" Id="@id" />
 }
 else
 {
@@ -28,56 +29,52 @@ else
     <div class="collapse" id="searchFormCollapse">
         <div class="card card-body mb-4 shadow-sm">
             <form class="row g-3" @onreset="ClearForm">
+                
                 <div class="col-md-4 col-sm-6">
                     <label class="form-label fw-semibold">
-                        @(ApplicationHelper.GetDisplayName<IdentifierSearchDto>(nameof(IdentifierSearchDto.Title)))
+                        @(ApplicationHelper.GetDisplayName<EquipmentSearchDto>(nameof(EquipmentSearchDto.Title)))
                     </label>
                     <input type="text" class="form-control" @bind="searchModel.Title" />
                 </div>
 
                 <div class="col-md-4 col-sm-6">
                     <label class="form-label fw-semibold">
-                        @(ApplicationHelper.GetDisplayName<IdentifierSearchDto>(nameof(IdentifierSearchDto.DocumentNumber)))
+                        @(ApplicationHelper.GetDisplayName<EquipmentSearchDto>(nameof(EquipmentSearchDto.Code)))
                     </label>
-                    <input type="text" class="form-control" @bind="searchModel.DocumentNumber" />
+                    <input type="text" class="form-control" @bind="searchModel.Code" />
                 </div>
 
                 <div class="col-md-4 col-sm-6">
                     <label class="form-label fw-semibold">
-                        @(ApplicationHelper.GetDisplayName<IdentifierSearchDto>(nameof(IdentifierSearchDto.Category)))
+                        @(ApplicationHelper.GetDisplayName<EquipmentSearchDto>(nameof(EquipmentSearchDto.EquipmentModel)))
                     </label>
-                    <select class="form-select" @bind="searchModel.Category">
-                        <option value="">انتخاب کنید...</option>
-                        @foreach (var item in Enum.GetValues<DocumentCategory>())
-                        {
-                            <option value="@item">@item.ToDisplay()</option>
-                        }
-                    </select>
+                    <input type="text" class="form-control" @bind="searchModel.EquipmentModel" />
                 </div>
 
                 <div class="col-md-4 col-sm-6">
                     <label class="form-label fw-semibold">
-                        @(ApplicationHelper.GetDisplayName<IdentifierSearchDto>(nameof(IdentifierSearchDto.EditNo)))
+                        @(ApplicationHelper.GetDisplayName<EquipmentSearchDto>(nameof(EquipmentSearchDto.SerialNo)))
                     </label>
-                    <input type="text" class="form-control" @bind="searchModel.EditNo" />
+                    <input type="text" class="form-control" @bind="searchModel.SerialNo" />
                 </div>
 
                 <div class="col-md-4 col-sm-6">
                     <label class="form-label fw-semibold">
-                        @(ApplicationHelper.GetDisplayName<IdentifierSearchDto>(nameof(IdentifierSearchDto.ProducerUserId)))
+                        @(ApplicationHelper.GetDisplayName<EquipmentSearchDto>(nameof(EquipmentSearchDto.Manufacturer)))
                     </label>
-                    <select class="form-select" @bind="searchModel.ProducerUserId">
-                        <option value="">انتخاب کنید...</option>
-                        @foreach (var user in UsersKeyValue)
-                        {
-                            <option value="@user.Key">@user.Value</option>
-                        }
-                    </select>
+                    <input type="text" class="form-control" @bind="searchModel.Manufacturer" />
                 </div>
 
                 <div class="col-md-4 col-sm-6">
                     <label class="form-label fw-semibold">
-                        @(ApplicationHelper.GetDisplayName<IdentifierSearchDto>(nameof(IdentifierSearchDto.FirstConfirmerUserId)))
+                        @(ApplicationHelper.GetDisplayName<EquipmentSearchDto>(nameof(EquipmentSearchDto.ManufactureCountry)))
+                    </label>
+                    <input type="text" class="form-control" @bind="searchModel.ManufactureCountry" />
+                </div>
+
+                <div class="col-md-4 col-sm-6">
+                    <label class="form-label fw-semibold">
+                        @(ApplicationHelper.GetDisplayName<EquipmentSearchDto>(nameof(EquipmentSearchDto.FirstConfirmerUserId)))
                     </label>
                     <select class="form-select" @bind="searchModel.FirstConfirmerUserId">
                         <option value="">انتخاب کنید...</option>
@@ -90,7 +87,7 @@ else
 
                 <div class="col-md-4 col-sm-6">
                     <label class="form-label fw-semibold">
-                        @(ApplicationHelper.GetDisplayName<IdentifierSearchDto>(nameof(IdentifierSearchDto.SecondConfirmerUserId)))
+                        @(ApplicationHelper.GetDisplayName<EquipmentSearchDto>(nameof(EquipmentSearchDto.SecondConfirmerUserId)))
                     </label>
                     <select class="form-select" @bind="searchModel.SecondConfirmerUserId">
                         <option value="">انتخاب کنید...</option>
@@ -115,24 +112,26 @@ else
 
     <MudTable ServerData="ServerReload" Dense="true" Striped="true" Hover="true" @ref="table">
         <HeaderContent>
-            <MudTh>@(ApplicationHelper.GetDisplayName<IdentifierDisplayDto>(nameof(IdentifierDisplayDto.Title)))</MudTh>
-            <MudTh>@(ApplicationHelper.GetDisplayName<IdentifierDisplayDto>(nameof(IdentifierDisplayDto.DocumentNumber)))</MudTh>
-            <MudTh>@(ApplicationHelper.GetDisplayName<IdentifierDisplayDto>(nameof(IdentifierDisplayDto.Category)))</MudTh>
-            <MudTh>@(ApplicationHelper.GetDisplayName<IdentifierDisplayDto>(nameof(IdentifierDisplayDto.EditNo)))</MudTh>
-            <MudTh>@(ApplicationHelper.GetDisplayName<IdentifierDisplayDto>(nameof(IdentifierDisplayDto.ProducerUserFullName)))</MudTh>
-            <MudTh>@(ApplicationHelper.GetDisplayName<IdentifierDisplayDto>(nameof(IdentifierDisplayDto.FirstConfirmerUserFullName)))</MudTh>
-            <MudTh>@(ApplicationHelper.GetDisplayName<IdentifierDisplayDto>(nameof(IdentifierDisplayDto.SecondConfirmerUserFullName)))</MudTh>
+            <MudTh>@(ApplicationHelper.GetDisplayName<EquipmentDisplayDto>(nameof(EquipmentDisplayDto.Title)))</MudTh>
+            <MudTh>@(ApplicationHelper.GetDisplayName<EquipmentDisplayDto>(nameof(EquipmentDisplayDto.Code)))</MudTh>
+            <MudTh>@(ApplicationHelper.GetDisplayName<EquipmentDisplayDto>(nameof(EquipmentDisplayDto.EquipmentModel)))</MudTh>
+            <MudTh>@(ApplicationHelper.GetDisplayName<EquipmentDisplayDto>(nameof(EquipmentDisplayDto.SerialNo)))</MudTh>
+            <MudTh>@(ApplicationHelper.GetDisplayName<EquipmentDisplayDto>(nameof(EquipmentDisplayDto.Manufacturer)))</MudTh>
+            <MudTh>@(ApplicationHelper.GetDisplayName<EquipmentDisplayDto>(nameof(EquipmentDisplayDto.ManufactureCountry)))</MudTh>
+            <MudTh>@(ApplicationHelper.GetDisplayName<EquipmentDisplayDto>(nameof(EquipmentDisplayDto.FirstConfirmerUserFullName)))</MudTh>
+            <MudTh>@(ApplicationHelper.GetDisplayName<EquipmentDisplayDto>(nameof(EquipmentDisplayDto.SecondConfirmerUserFullName)))</MudTh>
             <MudTh>عملیات</MudTh>
         </HeaderContent>
         <RowTemplate>
-            <MudTd DataLabel="@(nameof(IdentifierDisplayDto.Title))">@context.Title</MudTd>
-            <MudTd DataLabel="@(nameof(IdentifierDisplayDto.DocumentNumber))">@context.DocumentNumber</MudTd>
-            <MudTd DataLabel="@(nameof(IdentifierDisplayDto.Category))">@context.Category.ToDisplay()</MudTd>
-            <MudTd DataLabel="@(nameof(IdentifierDisplayDto.EditNo))">@context.EditNo</MudTd>
-            <MudTd DataLabel="@(nameof(IdentifierDisplayDto.ProducerUserFullName))">@context.ProducerUserFullName</MudTd>
-            <MudTd DataLabel="@(nameof(IdentifierDisplayDto.FirstConfirmerUserFullName))">@context.FirstConfirmerUserFullName</MudTd>
-            <MudTd DataLabel="@(nameof(IdentifierDisplayDto.SecondConfirmerUserFullName))">@context.SecondConfirmerUserFullName</MudTd>
-            <MudTd DataLabel="@(nameof(IdentifierDisplayDto.Id))" Style="width: 150px;">
+            <MudTd DataLabel="@(nameof(EquipmentDisplayDto.Title))">@context.Title</MudTd>
+            <MudTd DataLabel="@(nameof(EquipmentDisplayDto.Code))">@context.Code</MudTd>
+            <MudTd DataLabel="@(nameof(EquipmentDisplayDto.EquipmentModel))">@context.EquipmentModel</MudTd>
+            <MudTd DataLabel="@(nameof(EquipmentDisplayDto.SerialNo))">@context.SerialNo</MudTd>
+            <MudTd DataLabel="@(nameof(EquipmentDisplayDto.Manufacturer))">@context.Manufacturer</MudTd>
+            <MudTd DataLabel="@(nameof(EquipmentDisplayDto.ManufactureCountry))">@context.ManufactureCountry</MudTd>
+            <MudTd DataLabel="@(nameof(EquipmentDisplayDto.FirstConfirmerUserFullName))">@context.FirstConfirmerUserFullName</MudTd>
+            <MudTd DataLabel="@(nameof(EquipmentDisplayDto.SecondConfirmerUserFullName))">@context.SecondConfirmerUserFullName</MudTd>
+            <MudTd DataLabel="@(nameof(EquipmentDisplayDto.Id))" Style="width: 150px;">
                 <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Medium" OnClick="@(() => EditItem(context.Id))"></MudIconButton>
                 <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Medium" OnClick="@(() => DeleteItem(context.Id))"></MudIconButton>
             </MudTd>
@@ -154,8 +153,8 @@ else
     private FormState formState = FormState.None;
     private int? id = null;
 
-    private IdentifierSearchDto searchModel = new();
-    private MudTable<IdentifierDisplayDto> table;
+    private EquipmentSearchDto searchModel = new();
+    private MudTable<EquipmentDisplayDto> table;
     private List<KeyValuePair<int, string>> UsersKeyValue = new();
 
     NotificationClassName ClassName = NotificationClassName.Success;
@@ -169,22 +168,22 @@ else
         UsersKeyValue = apiResult?.Data?.ToList() ?? new();
     }
 
-    private async Task<TableData<IdentifierDisplayDto>> ServerReload(TableState state, CancellationToken token)
+    private async Task<TableData<EquipmentDisplayDto>> ServerReload(TableState state, CancellationToken token)
     {
         searchModel.CalculateTakeAndSkip(state.Page, state.PageSize);
         var apiResult = await httpHelper
-            .GetByFilterAsync<IdentifierSearchDto, ApiResult<BaseGridDto<IdentifierDisplayDto>>>("api/Identifier/GetByFilter", searchModel);
+            .GetByFilterAsync<EquipmentSearchDto, ApiResult<BaseGridDto<EquipmentDisplayDto>>>("api/Equipment/GetByFilter", searchModel);
 
-        var items = apiResult?.Data?.Data ?? Enumerable.Empty<IdentifierDisplayDto>();
+        var items = apiResult?.Data?.Data ?? Enumerable.Empty<EquipmentDisplayDto>();
         var total = apiResult?.Data?.TotalCount ?? 0;
-        return new TableData<IdentifierDisplayDto> { TotalItems = total, Items = items };
+        return new TableData<EquipmentDisplayDto> { TotalItems = total, Items = items };
     }
 
     private void OnSearch() => table?.ReloadServerData();
 
     private void ClearForm()
     {
-        searchModel = new IdentifierSearchDto();
+        searchModel = new EquipmentSearchDto();
         OnSearch();
     }
 
@@ -204,7 +203,7 @@ else
         var confirmResult = await JSRuntime.InvokeAsync<bool>("confirmDelete", "آیا از حذف این آیتم اطمینان دارید؟");
         if (confirmResult)
         {
-            var apiResult = await httpHelper.DeleteAsync<ApiResult>($"api/Identifier?id={this.id}");
+            var apiResult = await httpHelper.DeleteAsync<ApiResult>($"api/Equipment?id={this.id}");
 
             if(apiResult?.IsSuccess ?? false)
             {

@@ -1,4 +1,5 @@
-﻿@inject IHttpService _httpService
+﻿@using SolutionExplorer.KMS.SharedUI.Dtos.EquipmentDtos
+@inject IHttpService _httpService
 @inject IJSRuntime _jsRuntime
 
 @if (showSpinner)
@@ -10,7 +11,7 @@ else
     <div class="container">
         <div class="text-center mt-5">
             <h1>
-                @(this.Id.HasValue ? "ویرایش شناسنامه" : "ایجاد شناسنامه جدید")
+                @(this.Id.HasValue ? "ویرایش دستگاه" : "ایجاد دستگاه جدید")
             </h1>
         </div>
 
@@ -27,7 +28,7 @@ else
                                     <div class="row row-margin-10">
                                         <div class="form-group">
                                             <label>
-                                                @(ApplicationHelper.GetDisplayName<IdentifierCreateDto>(nameof(IdentifierCreateDto.Title)))
+                                                @(ApplicationHelper.GetDisplayName<EquipmentCreateDto>(nameof(EquipmentCreateDto.Title)))
                                             </label>
                                             <InputText class="form-control" @bind-Value="Model.Title" />
                                             <ValidationMessage For="@(() => Model.Title)" />
@@ -37,59 +38,57 @@ else
                                     <div class="row row-margin-10">
                                         <div class="form-group">
                                             <label>
-                                                @(ApplicationHelper.GetDisplayName<IdentifierCreateDto>(nameof(IdentifierCreateDto.DocumentNumber)))
+                                                @(ApplicationHelper.GetDisplayName<EquipmentCreateDto>(nameof(EquipmentCreateDto.Code)))
                                             </label>
-                                            <InputText class="form-control" @bind-Value="Model.DocumentNumber" />
-                                            <ValidationMessage For="@(() => Model.DocumentNumber)" />
+                                            <InputText class="form-control" @bind-Value="Model.Code" />
+                                            <ValidationMessage For="@(() => Model.Code)" />
                                         </div>
                                     </div>
 
                                     <div class="row row-margin-10">
                                         <div class="form-group">
                                             <label>
-                                                @(ApplicationHelper.GetDisplayName<IdentifierCreateDto>(nameof(IdentifierCreateDto.Category)))
+                                                @(ApplicationHelper.GetDisplayName<EquipmentCreateDto>(nameof(EquipmentCreateDto.EquipmentModel)))
                                             </label>
-                                            <InputSelect class="form-select" @bind-value="Model.Category">
-                                                <option value="">انتخاب کنید...</option>
-                                                @foreach (var item in Enum.GetValues<DocumentCategory>())
-                                                {
-                                                    <option value="@item">@item.ToDisplay()</option>
-                                                }
-                                            </InputSelect>
-                                            <ValidationMessage For="@(() => Model.Category)" />
+                                            <InputText class="form-control" @bind-Value="Model.EquipmentModel" />
+                                            <ValidationMessage For="@(() => Model.EquipmentModel)" />
                                         </div>
                                     </div>
 
                                     <div class="row row-margin-10">
                                         <div class="form-group">
                                             <label>
-                                                @(ApplicationHelper.GetDisplayName<IdentifierCreateDto>(nameof(IdentifierCreateDto.EditNo)))
+                                                @(ApplicationHelper.GetDisplayName<EquipmentCreateDto>(nameof(EquipmentCreateDto.SerialNo)))
                                             </label>
-                                            <InputText class="form-control" @bind-Value="Model.EditNo" />
-                                            <ValidationMessage For="@(() => Model.EditNo)" />
+                                            <InputText class="form-control" @bind-Value="Model.SerialNo" />
+                                            <ValidationMessage For="@(() => Model.SerialNo)" />
                                         </div>
                                     </div>
 
                                     <div class="row row-margin-10">
                                         <div class="form-group">
                                             <label>
-                                                @(ApplicationHelper.GetDisplayName<IdentifierCreateDto>(nameof(IdentifierCreateDto.ProducerUserId)))
+                                                @(ApplicationHelper.GetDisplayName<EquipmentCreateDto>(nameof(EquipmentCreateDto.Manufacturer)))
                                             </label>
-                                            <InputSelect class="form-select" @bind-value="Model.ProducerUserId">
-                                                <option value="">انتخاب کنید...</option>
-                                                @foreach (var user in UsersKeyValue)
-                                                {
-                                                    <option value="@user.Key">@user.Value</option>
-                                                }
-                                            </InputSelect>
-                                            <ValidationMessage For="@(() => Model.ProducerUserId)" />
+                                            <InputText class="form-control" @bind-Value="Model.Manufacturer" />
+                                            <ValidationMessage For="@(() => Model.Manufacturer)" />
                                         </div>
                                     </div>
 
                                     <div class="row row-margin-10">
                                         <div class="form-group">
                                             <label>
-                                                @(ApplicationHelper.GetDisplayName<IdentifierCreateDto>(nameof(IdentifierCreateDto.FirstConfirmerUserId)))
+                                                @(ApplicationHelper.GetDisplayName<EquipmentCreateDto>(nameof(EquipmentCreateDto.ManufactureCountry)))
+                                            </label>
+                                            <InputText class="form-control" @bind-Value="Model.ManufactureCountry" />
+                                            <ValidationMessage For="@(() => Model.ManufactureCountry)" />
+                                        </div>
+                                    </div>
+
+                                    <div class="row row-margin-10">
+                                        <div class="form-group">
+                                            <label>
+                                                @(ApplicationHelper.GetDisplayName<EquipmentCreateDto>(nameof(EquipmentCreateDto.FirstConfirmerUserId)))
                                             </label>
                                             <InputSelect class="form-select" @bind-value="Model.FirstConfirmerUserId">
                                                 <option value="">انتخاب کنید...</option>
@@ -105,7 +104,7 @@ else
                                     <div class="row row-margin-10">
                                         <div class="form-group">
                                             <label>
-                                                @(ApplicationHelper.GetDisplayName<IdentifierCreateDto>(nameof(IdentifierCreateDto.SecondConfirmerUserId)))
+                                                @(ApplicationHelper.GetDisplayName<EquipmentCreateDto>(nameof(EquipmentCreateDto.SecondConfirmerUserId)))
                                             </label>
                                             <InputSelect class="form-select" @bind-value="Model.SecondConfirmerUserId">
                                                 <option value="">انتخاب کنید...</option>
@@ -140,7 +139,7 @@ else
     [Parameter] public EventCallback<bool> OnSavedChanges { get; set; }
     [Parameter] public int? Id { get; set; } = null;
 
-    public IdentifierCreateDto Model { get; set; } = new();
+    public EquipmentCreateDto Model { get; set; } = new();
     private List<KeyValuePair<int, string>> UsersKeyValue = new();
 
     NotificationClassName ClassName = NotificationClassName.Success;
@@ -149,8 +148,12 @@ else
 
     protected override async Task OnParametersSetAsync()
     {
-        if(!Id.HasValue)
+        if (!Id.HasValue)
         {
+            var apiResult = await _httpService
+                .GetByFilterAsync<IdentifierSearchDto, ApiResult<BaseGridDto<IdentifierDisplayDto>>>("api/Identifier/GetByFilter", new IdentifierSearchDto() { GetAllItems = true, DocumentNumber = "B-001-0001" });
+
+            Model.IdentifierId = apiResult?.Data?.Data?.FirstOrDefault()?.Id ?? 0;
             return;
         }
 
@@ -158,11 +161,11 @@ else
 
         try
         {
-            var apiResult = await _httpService.GetAsync<ApiResult<IdentifierDisplayDto>>($"api/Identifier/{Id}");
+            var apiResult = await _httpService.GetAsync<ApiResult<EquipmentDisplayDto>>($"api/Equipment/{Id}");
 
             if (apiResult?.IsSuccess ?? false)
             {
-                Model = apiResult?.Data?.Adapt<IdentifierCreateDto>() ?? new();
+                Model = apiResult?.Data?.Adapt<EquipmentCreateDto>() ?? new();
             }
             else
             {
@@ -196,12 +199,12 @@ else
         showSpinner = true;
         try
         {
-            ApiResult<IdentifierDisplayDto>? apiResult = null;
+            ApiResult<EquipmentDisplayDto>? apiResult = null;
 
             if (Model.Id > 0)
-                apiResult = await _httpService.PutAsync<IdentifierCreateDto, ApiResult<IdentifierDisplayDto>>("api/Identifier", Model);
+                apiResult = await _httpService.PutAsync<EquipmentCreateDto, ApiResult<EquipmentDisplayDto>>("api/Equipment", Model);
             else
-                apiResult = await _httpService.PostAsync<IdentifierCreateDto, ApiResult<IdentifierDisplayDto>>("api/Identifier", Model);
+                apiResult = await _httpService.PostAsync<EquipmentCreateDto, ApiResult<EquipmentDisplayDto>>("api/Equipment", Model);
 
             if (!apiResult?.IsSuccess ?? false)
             {
