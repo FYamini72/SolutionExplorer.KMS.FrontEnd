@@ -25,5 +25,8 @@ namespace SolutionExplorer.KMS.SharedUI.Dtos.IdentifierDtos
 
         [Display(Name = "تصدیق کننده")]
         public int? SecondConfirmerUserId { get; set; }
+
+        [Display(Name = "نوع شناسنامه")]
+        public IdentifierType? IdentifierType { get; set; }
     }
 }

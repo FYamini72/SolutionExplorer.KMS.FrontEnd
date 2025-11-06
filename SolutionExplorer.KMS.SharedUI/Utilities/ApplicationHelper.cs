@@ -6,6 +6,12 @@ namespace SolutionExplorer.KMS.SharedUI.Utilities
 {
     public class ApplicationHelper
     {
+        public static string GetApiBasePath = "https://localhost:7180";
+        public static string GetAttachmentFileApiPath(int fileId)
+        {
+            return Path.Combine(GetApiBasePath, $"api/AttachmentFile/DownloadAttachment/{fileId}");
+        }
+
         /// <summary>
         /// نام نمایشی پراپرتی خواسته شده رو برمی‌گرداند
         /// </summary>
@@ -34,5 +40,6 @@ namespace SolutionExplorer.KMS.SharedUI.Utilities
 
             return propertyInfo.Name;
         }
+
     }
 }
