@@ -9,14 +9,16 @@ else
 {
 	<div class="container">
 		<div class="text-center mt-5">
-			<h1>
+			<h1 class="page-title">
 				@(this.Id.HasValue ? "ویرایش شناسنامه" : "ایجاد شناسنامه جدید")
 			</h1>
 		</div>
 
 		<div class="row">
 			<div class="col-lg-10 mx-auto">
-				<div class="card mt-2 mx-auto p-4 bg-light">
+			@* <div class="col-lg-8 mx-auto"> *@
+				@* <div class="card mt-2 mx-auto p-4 bg-light"> *@
+				<div class="card mt-2 mx-auto beauty-card">
 					<div class="card-body bg-light">
 						<div class="container">
 							<EditForm Model="@Model" OnValidSubmit="HandleValidSubmit">

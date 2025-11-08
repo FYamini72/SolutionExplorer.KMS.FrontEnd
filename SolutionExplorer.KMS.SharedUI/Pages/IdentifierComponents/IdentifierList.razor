@@ -204,6 +204,7 @@ else
 			IdentifierType = null;
 
 		searchModel.IdentifierType = this.IdentifierType;
+		table?.ReloadServerData();
 		return base.OnParametersSetAsync();
 	}
 

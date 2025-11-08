@@ -1,0 +1,194 @@
+﻿@page "/References"
+@inject IHttpService httpHelper
+@inject IJSRuntime JSRuntime
+@attribute [Authorize]
+
+@if (formState is FormState.Edit or FormState.Create)
+{
+	<ReferenceCreate OnSavedChanges="HandleCreateCompleted" Id="@id" />
+}
+else
+{
+	<div class="mb-3 d-flex flex-wrap gap-2">
+		<button class="btn btn-outline-info btn-sm" type="button" @onclick="OnSearch">
+			<span aria-hidden="true" style="vertical-align: sub;" class="bi bi-arrow-clockwise"></span>
+		</button>
+
+		<button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#searchFormCollapse" aria-expanded="false" aria-controls="searchFormCollapse">
+			<i class="bi bi-search"></i>
+			فرم جستجو
+		</button>
+
+		<button class="btn btn-success btn-sm" @onclick="CreateNewItem">
+			<i class="bi bi-plus-circle"></i>
+			درج رکورد جدید
+		</button>
+	</div>
+
+	<div class="collapse" id="searchFormCollapse">
+		<div class="card card-body mb-4 shadow-sm">
+			<form class="row g-3" @onreset="ClearForm">
+				<div class="col-md-4 col-sm-6">
+					<label class="form-label fw-semibold">
+						@(ApplicationHelper.GetDisplayName<ReferenceSearchDto>(nameof(ReferenceSearchDto.Title)))
+					</label>
+					<input type="text" class="form-control" @bind="searchModel.Title" />
+				</div>
+
+				<div class="col-12 text-end mt-3">
+					<button type="reset" class="btn btn-outline-secondary px-4 me-2">
+						<i class="bi bi-trash"></i> پاک کردن
+					</button>
+					<button type="button" class="btn btn-primary px-4" @onclick="OnSearch">
+						<i class="bi bi-search"></i> جستجو
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	<MudTable ServerData="ServerReload" Dense="true" Striped="true" Hover="true" @ref="table">
+		<HeaderContent>
+			<MudTh Style="width: 20%">@(ApplicationHelper.GetDisplayName<ReferenceDisplayDto>(nameof(ReferenceDisplayDto.Title)))</MudTh>
+			<MudTh Style="width: 20%">@(ApplicationHelper.GetDisplayName<ReferenceDisplayDto>(nameof(ReferenceDisplayDto.AttachmentFileId)))</MudTh>
+			<MudTh Style="width: 45%">@(ApplicationHelper.GetDisplayName<ReferenceDisplayDto>(nameof(ReferenceDisplayDto.Description)))</MudTh>
+			<MudTh Style="width: 15%">عملیات</MudTh>
+		</HeaderContent>
+		<RowTemplate>
+			<MudTd DataLabel="@(nameof(ReferenceDisplayDto.Title))">@context.Title</MudTd>
+			<MudTd DataLabel="@(nameof(ReferenceDisplayDto.AttachmentFileId))">
+				@if (context.AttachmentFileId.HasValue)
+				{
+					<button @onclick="() => DownloadFileAsync(context.AttachmentFileId.Value, context.AttachmentFileName)" class="btn btn-default">دانلود</button>
+				}
+			</MudTd>
+			<MudTd DataLabel="@(nameof(ReferenceDisplayDto.Description))">@context.Description</MudTd>
+			<MudTd DataLabel="@(nameof(ReferenceDisplayDto.Id))" Style="width: 150px;">
+				<MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Medium" OnClick="@(() => EditItem(context.Id))"></MudIconButton>
+				<MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Medium" OnClick="@(() => DeleteItem(context.Id))"></MudIconButton>
+			</MudTd>
+		</RowTemplate>
+		<NoRecordsContent>
+			<MudText>موردی یافت نشد.</MudText>
+		</NoRecordsContent>
+		<LoadingContent>
+			<MudText>Loading...</MudText>
+		</LoadingContent>
+		<PagerContent>
+			<MudTablePager />
+		</PagerContent>
+	</MudTable>
+}
+
+@code {
+	enum FormState { None, Create, Edit }
+	private FormState formState = FormState.None;
+	private int? id = null;
+
+	private ReferenceSearchDto searchModel = new();
+	private MudTable<ReferenceDisplayDto> table;
+
+	NotificationClassName ClassName = NotificationClassName.Success;
+	string MessageBody = "عملیات با موفقت انجام شد.";
+
+	private async Task<TableData<ReferenceDisplayDto>> ServerReload(TableState state, CancellationToken token)
+	{
+		searchModel.CalculateTakeAndSkip(state.Page, state.PageSize);
+		var apiResult = await httpHelper
+			.GetByFilterAsync<ReferenceSearchDto, ApiResult<BaseGridDto<ReferenceDisplayDto>>>("api/Reference/GetByFilter", searchModel);
+
+		var items = apiResult?.Data?.Data ?? Enumerable.Empty<ReferenceDisplayDto>();
+		var total = apiResult?.Data?.TotalCount ?? 0;
+		return new TableData<ReferenceDisplayDto> { TotalItems = total, Items = items };
+	}
+
+	private void OnSearch() => table?.ReloadServerData();
+
+	private void ClearForm()
+	{
+		searchModel = new ReferenceSearchDto();
+		OnSearch();
+	}
+
+	private void CreateNewItem() => formState = FormState.Create;
+
+	private void EditItem(int itemId)
+	{
+		this.id = itemId;
+		formState = FormState.Edit;
+	}
+
+	private async Task DeleteItem(int itemId)
+	{
+		this.id = itemId;
+		formState = FormState.None;
+
+		var confirmResult = await JSRuntime.InvokeAsync<bool>("confirmDelete", "آیا از حذف این آیتم اطمینان دارید؟");
+		if (confirmResult)
+		{
+			var apiResult = await httpHelper.DeleteAsync<ApiResult>($"api/Reference?id={this.id}");
+
+			if (apiResult?.IsSuccess ?? false)
+			{
+				ClassName = NotificationClassName.Success;
+				MessageBody = "عملیات با موفقت انجام شد.";
+			}
+			else
+			{
+				ClassName = NotificationClassName.Error;
+				MessageBody = apiResult?.Message ?? "خطایی رخ داده است. لطفا با پشتیبانی تماس بگیرید.";
+			}
+
+			await ShowMessage();
+			table?.ReloadServerData();
+		}
+	}
+
+	private async Task HandleCreateCompleted(bool saved)
+	{
+		formState = FormState.None;
+		this.id = null;
+		if (!saved)
+		{ 
+			return; 
+		}
+
+		ClassName = NotificationClassName.Success;
+		MessageBody = "عملیات با موفقت انجام شد.";
+		await ShowMessage();
+		table?.ReloadServerData();
+	}
+
+	private async Task DownloadFileAsync(int attachmentFileId, string name)
+	{
+		try
+		{
+			var endpoint = $"api/AttachmentFile/DownloadAttachment/{attachmentFileId}";
+			var fileBytes = await httpHelper.DownloadFileAsync(endpoint);
+
+			if (fileBytes == null || fileBytes.Length == 0)
+			{
+				MessageBody = "دانلود فایل ناموفق بود!";
+				ClassName = NotificationClassName.Error;
+				await ShowMessage();
+				return;
+			}
+
+			var base64 = Convert.ToBase64String(fileBytes);
+
+			await JSRuntime.InvokeVoidAsync("downloadFileFromBytes", name, base64);
+
+			MessageBody = $"فایل با موفقیت ذخیره شد.";
+			ClassName = NotificationClassName.Success;
+			await ShowMessage();
+		}
+		catch (Exception ex)
+		{
+			MessageBody = $"خطا در دانلود فایل:\n{ex.Message}";
+			ClassName = NotificationClassName.Error;
+			await ShowMessage();
+		}
+	}
+
+	private Task ShowMessage() => JSRuntime.InvokeVoidAsync("showToast", ClassName.ToDisplay(), MessageBody).AsTask();
+}

@@ -1,0 +1,271 @@
+﻿@using SolutionExplorer.KMS.SharedUI.Dtos.LabReportHistoryDtos
+@using System.Globalization
+@inject IHttpService _httpService
+@inject IJSRuntime _jsRuntime
+
+@if (showSpinner)
+{
+	<Spinner />
+}
+else
+{
+	<div class="container">
+		<div class="text-center mt-5">
+			<h1 class="page-title">
+				@(this.Id.HasValue ? "ویرایش گزارش آزمایش" : "ایجاد گزارش آزمایش جدید")
+			</h1>
+		</div>
+
+		<div class="row">
+			<div class="col-lg-8 mx-auto">
+				<div class="card mt-2 mx-auto beauty-card">
+					<div class="card-body bg-light">
+						<div class="container">
+							<EditForm Model="@Model" OnValidSubmit="HandleValidSubmit">
+								<DataAnnotationsValidator />
+								<div class="controls">
+									<input type="hidden" @bind-value="Model.Id" />
+
+									<div class="row row-margin-10">
+										<div class="form-group col-md-6">
+											<label>
+												@(ApplicationHelper.GetDisplayName<LabReportHistoryCreateDto>(nameof(LabReportHistoryCreateDto.ReportDate)))
+											</label>
+											<PersianDatePicker Value="@Model.ReportDate"
+															   ValueChanged="@((val) => Model.ReportDate = val ?? DateTime.Now)"
+															   Required="true"
+															   ShowToolbar="false" />
+										</div>
+										<div class="form-group col-md-6">
+											<label>
+												@(ApplicationHelper.GetDisplayName<LabReportHistoryCreateDto>(nameof(LabReportHistoryCreateDto.ReportTime)))
+											</label>
+											<TimePicker
+														Value="Model.ReportTime"
+														ValueChanged="@((val) => Model.ReportTime = val ?? DateTime.Now.TimeOfDay)"
+														AmPm="true"
+														Clearable="false"
+														AutoClose="false"
+														ShowToolbar="true"
+														Format="hh:mm tt"
+														Variant="PickerVariant.Dialog" />
+										</div>
+									</div>
+
+									<div class="row row-margin-10">
+										<div class="form-group col-md-6">
+											<label>
+												@(ApplicationHelper.GetDisplayName<LabReportHistoryCreateDto>(nameof(LabReportHistoryCreateDto.PatientName)))
+											</label>
+											<InputText class="form-control" @bind-Value="Model.PatientName" />
+											<ValidationMessage For="@(() => Model.PatientName)" />
+										</div>
+										<div class="form-group col-md-6">
+											<label>
+												@(ApplicationHelper.GetDisplayName<LabReportHistoryCreateDto>(nameof(LabReportHistoryCreateDto.AdmissionNumber)))
+											</label>
+											<InputText class="form-control" @bind-Value="Model.AdmissionNumber" />
+											<ValidationMessage For="@(() => Model.AdmissionNumber)" />
+										</div>
+									</div>
+
+									<div class="row row-margin-10">
+										<div class="form-group col-md-6">
+											<label>
+												@(ApplicationHelper.GetDisplayName<LabReportHistoryCreateDto>(nameof(LabReportHistoryCreateDto.ReporterUserId)))
+											</label>
+											<InputSelect class="form-select" @bind-value="Model.ReporterUserId">
+												<option value="">انتخاب کنید...</option>
+												@foreach (var user in UsersKeyValue)
+												{
+													<option value="@user.Key">@user.Value</option>
+												}
+											</InputSelect>
+											<ValidationMessage For="@(() => Model.ReporterUserId)" />
+										</div>
+										<div class="form-group col-md-6">
+											<label>
+												@(ApplicationHelper.GetDisplayName<LabReportHistoryCreateDto>(nameof(LabReportHistoryCreateDto.ReceiverUserId)))
+											</label>
+											<InputSelect class="form-select" @bind-value="Model.ReceiverUserId">
+												<option value="">انتخاب کنید...</option>
+												@foreach (var user in UsersKeyValue)
+												{
+													<option value="@user.Key">@user.Value</option>
+												}
+											</InputSelect>
+										</div>
+									</div>
+
+									<div class="row row-margin-10">
+										<div class="form-group">
+											<label class="form-check-label">
+												<InputCheckbox class="form-check-input" @bind-Value="Model.IsCritical" />
+												@(ApplicationHelper.GetDisplayName<LabReportHistoryCreateDto>(nameof(LabReportHistoryCreateDto.IsCritical)))
+											</label>
+										</div>
+									</div>
+
+									<div class="row row-margin-10 @(Model.IsCritical ? "" : "hidden")">
+										<div class="form-group">
+											<label>
+												@(ApplicationHelper.GetDisplayName<LabReportHistoryCreateDto>(nameof(LabReportHistoryCreateDto.Description)))
+											</label>
+											<InputTextArea class="form-control" @bind-Value="Model.Description" rows="3" />
+											<ValidationMessage For="@(() => Model.Description)" />
+										</div>
+									</div>
+
+									<div class="row row-margin-10">
+										<div class="form-group">
+											<label>
+												@(ApplicationHelper.GetDisplayName<LabReportHistoryCreateDto>(nameof(LabReportHistoryCreateDto.ReporterComment)))
+											</label>
+											<InputTextArea class="form-control" @bind-Value="Model.ReporterComment" rows="3" />
+											<ValidationMessage For="@(() => Model.ReporterComment)" />
+										</div>
+									</div>
+
+									<div class="row row-margin-10">
+										<div class="form-group col-md-6">
+											<label>
+												@(ApplicationHelper.GetDisplayName<LabReportHistoryCreateDto>(nameof(LabReportHistoryCreateDto.FirstConfirmerUserId)))
+											</label>
+											<InputSelect class="form-select" @bind-value="Model.FirstConfirmerUserId">
+												<option value="">انتخاب کنید...</option>
+												@foreach (var user in UsersKeyValue)
+												{
+													<option value="@user.Key">@user.Value</option>
+												}
+											</InputSelect>
+											<ValidationMessage For="@(() => Model.FirstConfirmerUserId)" />
+										</div>
+										<div class="form-group col-md-6">
+											<label>
+												@(ApplicationHelper.GetDisplayName<LabReportHistoryCreateDto>(nameof(LabReportHistoryCreateDto.SecondConfirmerUserId)))
+											</label>
+											<InputSelect class="form-select" @bind-value="Model.SecondConfirmerUserId">
+												<option value="">انتخاب کنید...</option>
+												@foreach (var user in UsersKeyValue)
+												{
+													<option value="@user.Key">@user.Value</option>
+												}
+											</InputSelect>
+											<ValidationMessage For="@(() => Model.SecondConfirmerUserId)" />
+										</div>
+									</div>
+
+									<div class="row row-margin-10">
+										<div class="col-md-6">
+											<input type="submit" class="btn btn-success btn-send pt-2 btn-block" value="ثبت اطلاعات" />
+										</div>
+										<div class="col-md-6">
+											<button type="button" @onclick="Cancel" class="btn btn-primary btn-send pt-2 btn-block">انصراف</button>
+										</div>
+									</div>
+								</div>
+							</EditForm>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
+@code {
+	[Parameter] public EventCallback<bool> OnSavedChanges { get; set; }
+	[Parameter] public int? Id { get; set; } = null;
+
+	public LabReportHistoryCreateDto Model { get; set; } = new();
+	private List<KeyValuePair<int, string>> UsersKeyValue = new();
+
+	NotificationClassName ClassName = NotificationClassName.Success;
+	string MessageBody = "عملیات با موفقت انجام شد.";
+	private bool showSpinner;
+
+	private MudTimePicker _picker;
+
+	protected override async Task OnParametersSetAsync()
+	{
+		if (!Id.HasValue)
+		{
+			Model.ReportDateTime = DateTime.Now;
+			return;
+		}
+
+		showSpinner = true;
+
+		try
+		{
+			var apiResult = await _httpService.GetAsync<ApiResult<LabReportHistoryDisplayDto>>($"api/LabReportHistory/{Id}");
+
+			if (apiResult?.IsSuccess ?? false)
+			{
+				Model = apiResult?.Data?.Adapt<LabReportHistoryCreateDto>() ?? new();
+			}
+			else
+			{
+				ClassName = NotificationClassName.Error;
+				MessageBody = apiResult?.Message ?? "خطایی رخ داده است. لطفا با پشتیبانی تماس بگیرید.";
+				await ShowMessage();
+			}
+		}
+		catch (Exception)
+		{
+			ClassName = NotificationClassName.Error;
+			MessageBody = "خطا در دریافت اطلاعات گزارش آزمایش.";
+			await ShowMessage();
+		}
+		finally
+		{
+			showSpinner = false;
+		}
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		var apiResult = await _httpService
+			.GetByFilterAsync<UserSearchDto, ApiResult<List<KeyValuePair<int, string>>>>("api/User/GetByFilterForDropDown", new());
+
+		UsersKeyValue = apiResult?.Data?.ToList() ?? new();
+	}
+
+	private async Task HandleValidSubmit()
+	{
+		showSpinner = true;
+		try
+		{
+			ApiResult<LabReportHistoryDisplayDto>? apiResult = null;
+
+			if (Model.Id > 0)
+				apiResult = await _httpService.PutAsync<LabReportHistoryCreateDto, ApiResult<LabReportHistoryDisplayDto>>("api/LabReportHistory", Model);
+			else
+				apiResult = await _httpService.PostAsync<LabReportHistoryCreateDto, ApiResult<LabReportHistoryDisplayDto>>("api/LabReportHistory", Model);
+
+			if (!apiResult?.IsSuccess ?? false)
+			{
+				ClassName = NotificationClassName.Error;
+				MessageBody = apiResult?.Message ?? "خطایی رخ داده است. لطفا با پشتیبانی تماس بگیرید.";
+				await ShowMessage();
+				return;
+			}
+
+			await OnSavedChanges.InvokeAsync(true);
+		}
+		catch (Exception)
+		{
+			ClassName = NotificationClassName.Error;
+			MessageBody = "خطایی رخ داده است. لطفا با پشتیبانی تماس بگیرید.";
+			await ShowMessage();
+		}
+		finally
+		{
+			showSpinner = false;
+		}
+	}
+
+	private Task Cancel() => OnSavedChanges.InvokeAsync(false);
+
+	private Task ShowMessage() => _jsRuntime.InvokeVoidAsync("showToast", ClassName.ToDisplay(), MessageBody).AsTask();
+}

@@ -4,6 +4,22 @@ using System.ComponentModel.DataAnnotations;
 
 namespace SolutionExplorer.KMS.SharedUI.Dtos.IdentifierDtos
 {
+    public class ReferenceCreateDto : BaseDto
+    {
+        [Display(Name = "عنوان منبع")]
+        [Required(ErrorMessage = "وارد کردن {0} الزامی است.")]
+        public string? Title { get; set; }
+
+        [Display(Name = "توضیحات")]
+        public string? Description { get; set; }
+
+        /// <summary>
+        /// فایل پیوست شده
+        /// </summary>
+        [Display(Name = "فایل پیوست")]
+        public BaseFileInfo? SelectedFile { get; set; }
+
+    }
     public class IdentifierCreateDto : BaseDto
     {
         [Display(Name = "اسم سند")]
