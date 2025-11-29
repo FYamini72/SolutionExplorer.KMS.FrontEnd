@@ -1,5 +1,5 @@
 ﻿document.addEventListener('keydown', function (e) {
-    if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'i' || e.key === 'j')) || (e.ctrlKey && (e.key === 'S' || e.key === 'C' || e.key === 'V' || e.key === 's' || e.key === 'c' || e.key === 'v'))) {
+    if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'i' || e.key === 'j' || e.key === 'p' || e.key === 'P')) || (e.ctrlKey && (e.key === 'S' || e.key === 'C' || e.key === 'V' || e.key === 'P' || e.key === 's' || e.key === 'c' || e.key === 'v' || e.key === 'p'))) {
         e.preventDefault();
     }
 });

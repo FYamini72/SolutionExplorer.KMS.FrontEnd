@@ -1,0 +1,237 @@
+﻿@page "/Equipment"
+@using SolutionExplorer.KMS.SharedUI.Dtos.EquipmentDtos
+@inject IHttpService httpHelper
+@inject IJSRuntime JSRuntime
+@attribute [Authorize]
+
+@if (formState is FormState.Edit or FormState.Create)
+{
+    <EquipmentCreate OnSavedChanges="HandleCreateCompleted" Id="@id" />
+}
+else
+{
+    <div class="mb-3 d-flex flex-wrap gap-2">
+        <button class="btn btn-outline-info btn-sm" type="button" @onclick="OnSearch">
+            <span aria-hidden="true" style="vertical-align: sub;" class="bi bi-arrow-clockwise"></span>
+        </button>
+
+        <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#searchFormCollapse" aria-expanded="false" aria-controls="searchFormCollapse">
+            <i class="bi bi-search"></i>
+            فرم جستجو
+        </button>
+
+        <button class="btn btn-success btn-sm" @onclick="CreateNewItem">
+            <i class="bi bi-plus-circle"></i>
+            درج رکورد جدید
+        </button>
+    </div>
+
+    <div class="collapse" id="searchFormCollapse">
+        <div class="card card-body mb-4 shadow-sm">
+            <form class="row g-3" @onreset="ClearForm">
+                
+                <div class="col-md-4 col-sm-6">
+                    <label class="form-label fw-semibold">
+                        @(ApplicationHelper.GetDisplayName<EquipmentSearchDto>(nameof(EquipmentSearchDto.Title)))
+                    </label>
+                    <input type="text" class="form-control" @bind="searchModel.Title" />
+                </div>
+
+                <div class="col-md-4 col-sm-6">
+                    <label class="form-label fw-semibold">
+                        @(ApplicationHelper.GetDisplayName<EquipmentSearchDto>(nameof(EquipmentSearchDto.Code)))
+                    </label>
+                    <input type="text" class="form-control" @bind="searchModel.Code" />
+                </div>
+
+                <div class="col-md-4 col-sm-6">
+                    <label class="form-label fw-semibold">
+                        @(ApplicationHelper.GetDisplayName<EquipmentSearchDto>(nameof(EquipmentSearchDto.EquipmentModel)))
+                    </label>
+                    <input type="text" class="form-control" @bind="searchModel.EquipmentModel" />
+                </div>
+
+                <div class="col-md-4 col-sm-6">
+                    <label class="form-label fw-semibold">
+                        @(ApplicationHelper.GetDisplayName<EquipmentSearchDto>(nameof(EquipmentSearchDto.SerialNo)))
+                    </label>
+                    <input type="text" class="form-control" @bind="searchModel.SerialNo" />
+                </div>
+
+                <div class="col-md-4 col-sm-6">
+                    <label class="form-label fw-semibold">
+                        @(ApplicationHelper.GetDisplayName<EquipmentSearchDto>(nameof(EquipmentSearchDto.Manufacturer)))
+                    </label>
+                    <input type="text" class="form-control" @bind="searchModel.Manufacturer" />
+                </div>
+
+                <div class="col-md-4 col-sm-6">
+                    <label class="form-label fw-semibold">
+                        @(ApplicationHelper.GetDisplayName<EquipmentSearchDto>(nameof(EquipmentSearchDto.ManufactureCountry)))
+                    </label>
+                    <input type="text" class="form-control" @bind="searchModel.ManufactureCountry" />
+                </div>
+
+                <div class="col-md-4 col-sm-6">
+                    <label class="form-label fw-semibold">
+                        @(ApplicationHelper.GetDisplayName<EquipmentSearchDto>(nameof(EquipmentSearchDto.FirstConfirmerUserId)))
+                    </label>
+                    <select class="form-select" @bind="searchModel.FirstConfirmerUserId">
+                        <option value="">انتخاب کنید...</option>
+                        @foreach (var user in UsersKeyValue)
+                        {
+                            <option value="@user.Key">@user.Value</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-md-4 col-sm-6">
+                    <label class="form-label fw-semibold">
+                        @(ApplicationHelper.GetDisplayName<EquipmentSearchDto>(nameof(EquipmentSearchDto.SecondConfirmerUserId)))
+                    </label>
+                    <select class="form-select" @bind="searchModel.SecondConfirmerUserId">
+                        <option value="">انتخاب کنید...</option>
+                        @foreach (var user in UsersKeyValue)
+                        {
+                            <option value="@user.Key">@user.Value</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-12 text-end mt-3">
+                    <button type="reset" class="btn btn-outline-secondary px-4 me-2">
+                        <i class="bi bi-trash"></i> پاک کردن
+                    </button>
+                    <button type="button" class="btn btn-primary px-4" @onclick="OnSearch">
+                        <i class="bi bi-search"></i> جستجو
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <MudTable ServerData="ServerReload" Dense="true" Striped="true" Hover="true" @ref="table">
+        <HeaderContent>
+            <MudTh>@(ApplicationHelper.GetDisplayName<EquipmentDisplayDto>(nameof(EquipmentDisplayDto.Title)))</MudTh>
+            <MudTh>@(ApplicationHelper.GetDisplayName<EquipmentDisplayDto>(nameof(EquipmentDisplayDto.Code)))</MudTh>
+            <MudTh>@(ApplicationHelper.GetDisplayName<EquipmentDisplayDto>(nameof(EquipmentDisplayDto.EquipmentModel)))</MudTh>
+            <MudTh>@(ApplicationHelper.GetDisplayName<EquipmentDisplayDto>(nameof(EquipmentDisplayDto.SerialNo)))</MudTh>
+            <MudTh>@(ApplicationHelper.GetDisplayName<EquipmentDisplayDto>(nameof(EquipmentDisplayDto.Manufacturer)))</MudTh>
+            <MudTh>@(ApplicationHelper.GetDisplayName<EquipmentDisplayDto>(nameof(EquipmentDisplayDto.ManufactureCountry)))</MudTh>
+            <MudTh>@(ApplicationHelper.GetDisplayName<EquipmentDisplayDto>(nameof(EquipmentDisplayDto.FirstConfirmerUserFullName)))</MudTh>
+            <MudTh>@(ApplicationHelper.GetDisplayName<EquipmentDisplayDto>(nameof(EquipmentDisplayDto.SecondConfirmerUserFullName)))</MudTh>
+            <MudTh>عملیات</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="@(nameof(EquipmentDisplayDto.Title))">@context.Title</MudTd>
+            <MudTd DataLabel="@(nameof(EquipmentDisplayDto.Code))">@context.Code</MudTd>
+            <MudTd DataLabel="@(nameof(EquipmentDisplayDto.EquipmentModel))">@context.EquipmentModel</MudTd>
+            <MudTd DataLabel="@(nameof(EquipmentDisplayDto.SerialNo))">@context.SerialNo</MudTd>
+            <MudTd DataLabel="@(nameof(EquipmentDisplayDto.Manufacturer))">@context.Manufacturer</MudTd>
+            <MudTd DataLabel="@(nameof(EquipmentDisplayDto.ManufactureCountry))">@context.ManufactureCountry</MudTd>
+            <MudTd DataLabel="@(nameof(EquipmentDisplayDto.FirstConfirmerUserFullName))">@context.FirstConfirmerUserFullName</MudTd>
+            <MudTd DataLabel="@(nameof(EquipmentDisplayDto.SecondConfirmerUserFullName))">@context.SecondConfirmerUserFullName</MudTd>
+            <MudTd DataLabel="@(nameof(EquipmentDisplayDto.Id))" Style="width: 150px;">
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Medium" OnClick="@(() => EditItem(context.Id))"></MudIconButton>
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Medium" OnClick="@(() => DeleteItem(context.Id))"></MudIconButton>
+            </MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+            <MudText>موردی یافت نشد.</MudText>
+        </NoRecordsContent>
+        <LoadingContent>
+            <MudText>Loading...</MudText>
+        </LoadingContent>
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
+}
+
+@code {
+    enum FormState { None, Create, Edit }
+    private FormState formState = FormState.None;
+    private int? id = null;
+
+    private EquipmentSearchDto searchModel = new();
+    private MudTable<EquipmentDisplayDto> table;
+    private List<KeyValuePair<int, string>> UsersKeyValue = new();
+
+    NotificationClassName ClassName = NotificationClassName.Success;
+    string MessageBody = "عملیات با موفقت انجام شد.";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var apiResult = await httpHelper
+            .GetByFilterAsync<UserSearchDto, ApiResult<List<KeyValuePair<int, string>>>>("api/User/GetByFilterForDropDown", new());
+
+        UsersKeyValue = apiResult?.Data?.ToList() ?? new();
+    }
+
+    private async Task<TableData<EquipmentDisplayDto>> ServerReload(TableState state, CancellationToken token)
+    {
+        searchModel.CalculateTakeAndSkip(state.Page, state.PageSize);
+        var apiResult = await httpHelper
+            .GetByFilterAsync<EquipmentSearchDto, ApiResult<BaseGridDto<EquipmentDisplayDto>>>("api/Equipment/GetByFilter", searchModel);
+
+        var items = apiResult?.Data?.Data ?? Enumerable.Empty<EquipmentDisplayDto>();
+        var total = apiResult?.Data?.TotalCount ?? 0;
+        return new TableData<EquipmentDisplayDto> { TotalItems = total, Items = items };
+    }
+
+    private void OnSearch() => table?.ReloadServerData();
+
+    private void ClearForm()
+    {
+        searchModel = new EquipmentSearchDto();
+        OnSearch();
+    }
+
+    private void CreateNewItem() => formState = FormState.Create;
+
+    private void EditItem(int itemId)
+    {
+        this.id = itemId;
+        formState = FormState.Edit;
+    }
+
+    private async Task DeleteItem(int itemId)
+    {
+        this.id = itemId;
+        formState = FormState.None;
+
+        var confirmResult = await JSRuntime.InvokeAsync<bool>("confirmDelete", "آیا از حذف این آیتم اطمینان دارید؟");
+        if (confirmResult)
+        {
+            var apiResult = await httpHelper.DeleteAsync<ApiResult>($"api/Equipment?id={this.id}");
+
+            if(apiResult?.IsSuccess ?? false)
+            {
+                ClassName = NotificationClassName.Success;
+                MessageBody = "عملیات با موفقت انجام شد.";
+            }
+            else
+            {
+                ClassName = NotificationClassName.Error;
+                MessageBody = apiResult?.Message ?? "خطایی رخ داده است. لطفا با پشتیبانی تماس بگیرید.";
+            }
+
+            await ShowMessage();
+            table?.ReloadServerData();
+        }
+    }
+
+    private async Task HandleCreateCompleted(bool saved)
+    {
+        formState = FormState.None;
+        this.id = null;
+        if (!saved) return;
+
+        ClassName = NotificationClassName.Success;
+        MessageBody = "عملیات با موفقت انجام شد.";
+        await ShowMessage();
+        table?.ReloadServerData();
+    }
+
+    private Task ShowMessage() => JSRuntime.InvokeVoidAsync("showToast", ClassName.ToDisplay(), MessageBody).AsTask();
+}

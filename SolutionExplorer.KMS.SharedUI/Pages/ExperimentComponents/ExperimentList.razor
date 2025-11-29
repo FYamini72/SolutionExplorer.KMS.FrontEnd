@@ -1,0 +1,196 @@
+﻿@page "/Experiments"
+@using SolutionExplorer.KMS.SharedUI.Dtos.EquipmentDtos
+@using SolutionExplorer.KMS.SharedUI.Dtos.ExperimentDtos
+@inject IHttpService httpHelper
+@inject IJSRuntime JSRuntime
+@attribute [Authorize]
+
+<div class="mb-3 d-flex flex-wrap gap-2">
+    <button class="btn btn-outline-info btn-sm" type="button" @onclick="Reload">
+        <span aria-hidden="true" style="vertical-align: sub;" class="bi bi-arrow-clockwise"></span>
+    </button>
+
+    <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#searchFormCollapse" aria-expanded="false" aria-controls="searchFormCollapse">
+        <i class="bi bi-search"></i>
+        فرم جستجو
+    </button>
+</div>
+
+<div class="collapse" id="searchFormCollapse">
+    <div class="card card-body mb-4 shadow-sm">
+        <form class="row g-3" @onreset="ClearForm">
+
+            <div class="col-md-4 col-sm-6">
+                <label class="form-label fw-semibold">
+                    @(ApplicationHelper.GetDisplayName<ExperimentSearchDto>(nameof(ExperimentSearchDto.Title)))
+                </label>
+                <input type="text" class="form-control" @bind="searchModel.Title" />
+            </div>
+
+            <div class="col-md-4 col-sm-6">
+                <label class="form-label fw-semibold">
+                    @(ApplicationHelper.GetDisplayName<ExperimentSearchDto>(nameof(ExperimentSearchDto.Code)))
+                </label>
+                <input type="text" class="form-control" @bind="searchModel.Code" />
+            </div>
+
+            <div class="col-md-4 col-sm-6">
+                <label class="form-label fw-semibold">
+                    @(ApplicationHelper.GetDisplayName<ExperimentSearchDto>(nameof(ExperimentSearchDto.IsActive)))
+                </label>
+                <InputSelect class="form-select" @bind-Value="searchModel.IsActive">
+                    <option value="0">انتخاب کنید...</option>
+                    <option value="1">فعال</option>
+                    <option value="2">غیرفعال</option>
+                </InputSelect>
+            </div>
+
+            <div class="col-md-4 col-sm-6">
+                <label class="form-label fw-semibold">
+                    @(ApplicationHelper.GetDisplayName<ExperimentSearchDto>(nameof(ExperimentSearchDto.FirstConfirmerUserId)))
+                </label>
+                <select class="form-select" @bind="searchModel.FirstConfirmerUserId">
+                    <option value="">انتخاب کنید...</option>
+                    @foreach (var user in UsersKeyValue)
+                    {
+                        <option value="@user.Key">@user.Value</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-4 col-sm-6">
+                <label class="form-label fw-semibold">
+                    @(ApplicationHelper.GetDisplayName<ExperimentSearchDto>(nameof(ExperimentSearchDto.SecondConfirmerUserId)))
+                </label>
+                <select class="form-select" @bind="searchModel.SecondConfirmerUserId">
+                    <option value="">انتخاب کنید...</option>
+                    @foreach (var user in UsersKeyValue)
+                    {
+                        <option value="@user.Key">@user.Value</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-12 text-end mt-3">
+                <button type="reset" class="btn btn-outline-secondary px-4 me-2">
+                    <i class="bi bi-trash"></i> پاک کردن
+                </button>
+                <button type="button" class="btn btn-primary px-4" @onclick="OnSearch">
+                    <i class="bi bi-search"></i> جستجو
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<MudTable ServerData="ServerReload" Dense="true" Striped="true" Hover="true" @ref="table">
+    <HeaderContent>
+        <MudTh>@(ApplicationHelper.GetDisplayName<ExperimentDisplayDto>(nameof(ExperimentDisplayDto.Title)))</MudTh>
+        <MudTh>@(ApplicationHelper.GetDisplayName<ExperimentDisplayDto>(nameof(ExperimentDisplayDto.Code)))</MudTh>
+        <MudTh>@(ApplicationHelper.GetDisplayName<ExperimentDisplayDto>(nameof(ExperimentDisplayDto.FirstConfirmerUserFullName)))</MudTh>
+        <MudTh>@(ApplicationHelper.GetDisplayName<ExperimentDisplayDto>(nameof(ExperimentDisplayDto.SecondConfirmerUserFullName)))</MudTh>
+        <MudTh>@(ApplicationHelper.GetDisplayName<ExperimentDisplayDto>(nameof(ExperimentDisplayDto.IsActive)))</MudTh>
+    </HeaderContent>
+
+    <RowTemplate>
+        <MudTd DataLabel="@(nameof(ExperimentDisplayDto.Title))">@context.Title</MudTd>
+        <MudTd DataLabel="@(nameof(ExperimentDisplayDto.Code))">@context.Code</MudTd>
+        <MudTd DataLabel="@(nameof(ExperimentDisplayDto.FirstConfirmerUserFullName))">@context.FirstConfirmerUserFullName</MudTd>
+        <MudTd DataLabel="@(nameof(ExperimentDisplayDto.SecondConfirmerUserFullName))">@context.SecondConfirmerUserFullName</MudTd>
+        <MudTd DataLabel="@(nameof(ExperimentDisplayDto.IsActive))" Class="text-center">
+            <InputCheckbox Value="context.IsActive"
+                           ValueChanged="((bool isActive) => HandleCheckedChanged(isActive, context))"
+                           ValueExpression="() => context.IsActive"/>
+            @* <input type="checkbox" @bind-value="context.IsActive" @oninput="HandleCheckedChanged(context)" /> *@
+            @* <MudCheckBox T="ExperimentDisplayDto"
+                         Checked="@context"
+                         CheckedChanged="@(x => HandleCheckedChanged((bool)x, context))" /> *@
+        </MudTd>
+    </RowTemplate>
+
+    <NoRecordsContent>
+        <MudText>موردی یافت نشد.</MudText>
+    </NoRecordsContent>
+
+    <LoadingContent>
+        <MudText>در حال بارگذاری...</MudText>
+    </LoadingContent>
+
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
+
+@code {
+    private MudTable<ExperimentDisplayDto> table;
+    private ExperimentSearchDto searchModel = new();
+    private List<KeyValuePair<int, string>> UsersKeyValue = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var apiResult = await httpHelper
+            .GetByFilterAsync<UserSearchDto, ApiResult<List<KeyValuePair<int, string>>>>("api/User/GetByFilterForDropDown", new());
+
+        UsersKeyValue = apiResult?.Data?.ToList() ?? new();
+    }
+
+    private void OnSearch() => table?.ReloadServerData();
+
+    private void ClearForm()
+    {
+        searchModel = new ExperimentSearchDto();
+        OnSearch();
+    }
+
+    private async Task<TableData<ExperimentDisplayDto>> ServerReload(TableState state, CancellationToken token)
+    {
+        searchModel.CalculateTakeAndSkip(state.Page, state.PageSize);
+
+        var apiResult = await httpHelper
+            .GetByFilterAsync<ExperimentSearchDto, ApiResult<BaseGridDto<ExperimentDisplayDto>>>("api/Experiment/GetByFilter", searchModel);
+
+        var items = apiResult?.Data?.Data ?? Enumerable.Empty<ExperimentDisplayDto>();
+        var total = apiResult?.Data?.TotalCount ?? 0;
+
+        return new TableData<ExperimentDisplayDto> { TotalItems = total, Items = items };
+    }
+
+    private void Reload() => table?.ReloadServerData();
+
+    private bool _isChecked { get; set; }
+
+    private async Task HandleCheckedChanged(bool newValue, ExperimentDisplayDto experiment)
+    {
+        // مقدار محلی را هم تغییر بده تا UI تیک بخورد
+        experiment.IsActive = newValue;
+
+        var updateDto = new ExperimentChangeActivationStatusDto
+        {
+            Id = experiment.Id,
+            IsActive = newValue
+        };
+
+        try
+        {
+            var apiResult = await httpHelper.PutAsync<ExperimentChangeActivationStatusDto, ApiResult>(
+                "api/Experiment/ChangeActivationStatus", updateDto);
+
+            if (!(apiResult?.IsSuccess ?? false))
+            {
+                experiment.IsActive = !newValue; // rollback
+                await JSRuntime.InvokeVoidAsync("showToast", "error", apiResult?.Message ?? "خطا در به‌روزرسانی وضعیت");
+            }
+            else
+            {
+                await JSRuntime.InvokeVoidAsync("showToast", "success", "وضعیت آزمایش با موفقیت تغییر کرد");
+            }
+        }
+        catch
+        {
+            experiment.IsActive = !newValue;
+            await JSRuntime.InvokeVoidAsync("showToast", "error", "خطای ارتباط با سرور");
+        }
+
+        StateHasChanged();
+    }
+}
