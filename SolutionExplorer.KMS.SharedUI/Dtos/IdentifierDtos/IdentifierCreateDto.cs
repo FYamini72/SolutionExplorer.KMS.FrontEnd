@@ -1,8 +1,25 @@
-﻿using SolutionExplorer.KMS.SharedUI.Enums;
+﻿using Microsoft.AspNetCore.Components.Forms;
+using SolutionExplorer.KMS.SharedUI.Enums;
 using System.ComponentModel.DataAnnotations;
 
 namespace SolutionExplorer.KMS.SharedUI.Dtos.IdentifierDtos
 {
+    public class ReferenceCreateDto : BaseDto
+    {
+        [Display(Name = "عنوان منبع")]
+        [Required(ErrorMessage = "وارد کردن {0} الزامی است.")]
+        public string? Title { get; set; }
+
+        [Display(Name = "توضیحات")]
+        public string? Description { get; set; }
+
+        /// <summary>
+        /// فایل پیوست شده
+        /// </summary>
+        [Display(Name = "فایل پیوست")]
+        public BaseFileInfo? SelectedFile { get; set; }
+
+    }
     public class IdentifierCreateDto : BaseDto
     {
         [Display(Name = "اسم سند")]
@@ -32,5 +49,25 @@ namespace SolutionExplorer.KMS.SharedUI.Dtos.IdentifierDtos
         [Display(Name = "تصدیق کننده")]
         [Required(ErrorMessage = "وارد کردن {0} الزامی است.")]
         public int? SecondConfirmerUserId { get; set; }
+
+        [Display(Name = "توضیحات")]
+        public string? Description { get; set; }
+
+        /// <summary>
+        /// فایل پیوست شده
+        /// </summary>
+        [Display(Name = "فایل پیوست")]
+        public BaseFileInfo? SelectedFile { get; set; }
+
+        [Display(Name = "نوع شناسنامه")]
+        public IdentifierType IdentifierType { get; set; }
+    }
+
+    public class BaseFileInfo
+    {
+        public IBrowserFile? SelectedFile { get; set; }
+        public byte[]? SelectedFileBytes { get; set; }          // برای ارسال به سرور
+        public string? SelectedFileName { get; set; }
+        public string? SelectedFileContentType { get; set; }
     }
 }

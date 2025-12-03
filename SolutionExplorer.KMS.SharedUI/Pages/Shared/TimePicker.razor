@@ -1,0 +1,62 @@
+﻿@using MudBlazor
+
+<MudTimePicker Label="@Label"
+               Time="@Value"
+               TimeChanged="OnTimeChanged"
+               AmPm="@AmPm"
+               TimeFormat="@Format"
+               ReadOnly="@ReadOnly"
+               Disabled="@Disabled"
+               Elevation="0"
+               Clearable="@Clearable"
+               AutoClose="@AutoClose"
+               OpenTo="@OpenTo"
+               PickerVariant="@Variant"
+               Class="@Class"
+               ShowToolbar="@ShowToolbar"
+               Adornment="Adornment.End"
+               MinuteSelectionStep="@MinuteSelectionStep"
+               AdornmentIcon="@Icons.Material.Filled.AccessTime">
+</MudTimePicker>
+
+@code {
+    [Parameter] public string? Label { get; set; }
+    [Parameter] public EventCallback<TimeSpan?> ValueChanged { get; set; }
+    // [Parameter] public TimeSpan? Value { get; set; }
+
+    private TimeSpan? _value;
+
+    [Parameter]
+    public TimeSpan? Value
+    {
+        get => _value;
+        set
+        {
+            if (_value != value)
+            {
+                _value = value;
+                _ = ValueChanged.InvokeAsync(_value);
+            }
+        }
+    }
+
+
+    // تنظیمات اختیاری
+    [Parameter] public bool AmPm { get; set; } = false;
+    [Parameter] public string Format { get; set; } = "HH:mm";
+    [Parameter] public bool ReadOnly { get; set; } = false;
+    [Parameter] public bool Disabled { get; set; } = false;
+    [Parameter] public bool Clearable { get; set; } = true;
+    [Parameter] public bool AutoClose { get; set; } = true;
+    [Parameter] public bool ShowToolbar { get; set; } = true;
+    [Parameter] public string Class { get; set; }
+    [Parameter] public OpenTo OpenTo { get; set; } = OpenTo.Hours;
+    [Parameter] public PickerVariant Variant { get; set; } = PickerVariant.Inline;
+    [Parameter] public int MinuteSelectionStep { get; set; } = 1;
+
+    private async Task OnTimeChanged(TimeSpan? time)
+    {
+        _value = time;
+        await ValueChanged.InvokeAsync(_value);
+    }
+}

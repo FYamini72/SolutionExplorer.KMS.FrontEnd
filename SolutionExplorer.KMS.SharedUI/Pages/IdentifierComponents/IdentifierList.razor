@@ -1,238 +1,315 @@
-﻿@page "/Identifiers"
+﻿@page "/Identifiers/{IdentifierType?}"
 @inject IHttpService httpHelper
 @inject IJSRuntime JSRuntime
 @attribute [Authorize]
 
 @if (formState is FormState.Edit or FormState.Create)
 {
-    <IdentifierCreate OnSavedChanges="HandleCreateCompleted" Id="@id" />
+	<IdentifierCreate OnSavedChanges="HandleCreateCompleted" Id="@id" />
 }
 else
 {
-    <div class="mb-3 d-flex flex-wrap gap-2">
-        <button class="btn btn-outline-info btn-sm" type="button" @onclick="OnSearch">
-            <span aria-hidden="true" style="vertical-align: sub;" class="bi bi-arrow-clockwise"></span>
-        </button>
+	<div class="mb-3 d-flex flex-wrap gap-2">
+		<button class="btn btn-outline-info btn-sm" type="button" @onclick="OnSearch">
+			<span aria-hidden="true" style="vertical-align: sub;" class="bi bi-arrow-clockwise"></span>
+		</button>
 
-        <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#searchFormCollapse" aria-expanded="false" aria-controls="searchFormCollapse">
-            <i class="bi bi-search"></i>
-            فرم جستجو
-        </button>
+		<button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#searchFormCollapse" aria-expanded="false" aria-controls="searchFormCollapse">
+			<i class="bi bi-search"></i>
+			فرم جستجو
+		</button>
 
-        <button class="btn btn-success btn-sm" @onclick="CreateNewItem">
-            <i class="bi bi-plus-circle"></i>
-            درج رکورد جدید
-        </button>
-    </div>
+		<button class="btn btn-success btn-sm" @onclick="CreateNewItem">
+			<i class="bi bi-plus-circle"></i>
+			درج رکورد جدید
+		</button>
+	</div>
 
-    <div class="collapse" id="searchFormCollapse">
-        <div class="card card-body mb-4 shadow-sm">
-            <form class="row g-3" @onreset="ClearForm">
-                <div class="col-md-4 col-sm-6">
-                    <label class="form-label fw-semibold">
-                        @(ApplicationHelper.GetDisplayName<IdentifierSearchDto>(nameof(IdentifierSearchDto.Title)))
-                    </label>
-                    <input type="text" class="form-control" @bind="searchModel.Title" />
-                </div>
+	<div class="collapse" id="searchFormCollapse">
+		<div class="card card-body mb-4 shadow-sm">
+			<form class="row g-3" @onreset="ClearForm">
+				<div class="col-md-4 col-sm-6">
+					<label class="form-label fw-semibold">
+						@(ApplicationHelper.GetDisplayName<IdentifierSearchDto>(nameof(IdentifierSearchDto.Title)))
+					</label>
+					<input type="text" class="form-control" @bind="searchModel.Title" />
+				</div>
 
-                <div class="col-md-4 col-sm-6">
-                    <label class="form-label fw-semibold">
-                        @(ApplicationHelper.GetDisplayName<IdentifierSearchDto>(nameof(IdentifierSearchDto.DocumentNumber)))
-                    </label>
-                    <input type="text" class="form-control" @bind="searchModel.DocumentNumber" />
-                </div>
+				<div class="col-md-4 col-sm-6">
+					<label class="form-label fw-semibold">
+						@(ApplicationHelper.GetDisplayName<IdentifierSearchDto>(nameof(IdentifierSearchDto.DocumentNumber)))
+					</label>
+					<input type="text" class="form-control" @bind="searchModel.DocumentNumber" />
+				</div>
 
-                <div class="col-md-4 col-sm-6">
-                    <label class="form-label fw-semibold">
-                        @(ApplicationHelper.GetDisplayName<IdentifierSearchDto>(nameof(IdentifierSearchDto.Category)))
-                    </label>
-                    <select class="form-select" @bind="searchModel.Category">
-                        <option value="">انتخاب کنید...</option>
-                        @foreach (var item in Enum.GetValues<DocumentCategory>())
-                        {
-                            <option value="@item">@item.ToDisplay()</option>
-                        }
-                    </select>
-                </div>
+				<div class="col-md-4 col-sm-6">
+					<label class="form-label fw-semibold">
+						@(ApplicationHelper.GetDisplayName<IdentifierSearchDto>(nameof(IdentifierSearchDto.Category)))
+					</label>
+					<select class="form-select" @bind="searchModel.Category">
+						<option value="">انتخاب کنید...</option>
+						@foreach (var item in Enum.GetValues<DocumentCategory>())
+						{
+							<option value="@item">@item.ToDisplay()</option>
+						}
+					</select>
+				</div>
 
-                <div class="col-md-4 col-sm-6">
-                    <label class="form-label fw-semibold">
-                        @(ApplicationHelper.GetDisplayName<IdentifierSearchDto>(nameof(IdentifierSearchDto.EditNo)))
-                    </label>
-                    <input type="text" class="form-control" @bind="searchModel.EditNo" />
-                </div>
+				<div class="col-md-4 col-sm-6">
+					<label class="form-label fw-semibold">
+						@(ApplicationHelper.GetDisplayName<IdentifierSearchDto>(nameof(IdentifierSearchDto.EditNo)))
+					</label>
+					<input type="text" class="form-control" @bind="searchModel.EditNo" />
+				</div>
 
-                <div class="col-md-4 col-sm-6">
-                    <label class="form-label fw-semibold">
-                        @(ApplicationHelper.GetDisplayName<IdentifierSearchDto>(nameof(IdentifierSearchDto.ProducerUserId)))
-                    </label>
-                    <select class="form-select" @bind="searchModel.ProducerUserId">
-                        <option value="">انتخاب کنید...</option>
-                        @foreach (var user in UsersKeyValue)
-                        {
-                            <option value="@user.Key">@user.Value</option>
-                        }
-                    </select>
-                </div>
+				<div class="col-md-4 col-sm-6">
+					<label class="form-label fw-semibold">
+						@(ApplicationHelper.GetDisplayName<IdentifierSearchDto>(nameof(IdentifierSearchDto.ProducerUserId)))
+					</label>
+					<select class="form-select" @bind="searchModel.ProducerUserId">
+						<option value="">انتخاب کنید...</option>
+						@foreach (var user in UsersKeyValue)
+						{
+							<option value="@user.Key">@user.Value</option>
+						}
+					</select>
+				</div>
 
-                <div class="col-md-4 col-sm-6">
-                    <label class="form-label fw-semibold">
-                        @(ApplicationHelper.GetDisplayName<IdentifierSearchDto>(nameof(IdentifierSearchDto.FirstConfirmerUserId)))
-                    </label>
-                    <select class="form-select" @bind="searchModel.FirstConfirmerUserId">
-                        <option value="">انتخاب کنید...</option>
-                        @foreach (var user in UsersKeyValue)
-                        {
-                            <option value="@user.Key">@user.Value</option>
-                        }
-                    </select>
-                </div>
+				<div class="col-md-4 col-sm-6">
+					<label class="form-label fw-semibold">
+						@(ApplicationHelper.GetDisplayName<IdentifierSearchDto>(nameof(IdentifierSearchDto.FirstConfirmerUserId)))
+					</label>
+					<select class="form-select" @bind="searchModel.FirstConfirmerUserId">
+						<option value="">انتخاب کنید...</option>
+						@foreach (var user in UsersKeyValue)
+						{
+							<option value="@user.Key">@user.Value</option>
+						}
+					</select>
+				</div>
 
-                <div class="col-md-4 col-sm-6">
-                    <label class="form-label fw-semibold">
-                        @(ApplicationHelper.GetDisplayName<IdentifierSearchDto>(nameof(IdentifierSearchDto.SecondConfirmerUserId)))
-                    </label>
-                    <select class="form-select" @bind="searchModel.SecondConfirmerUserId">
-                        <option value="">انتخاب کنید...</option>
-                        @foreach (var user in UsersKeyValue)
-                        {
-                            <option value="@user.Key">@user.Value</option>
-                        }
-                    </select>
-                </div>
+				<div class="col-md-4 col-sm-6">
+					<label class="form-label fw-semibold">
+						@(ApplicationHelper.GetDisplayName<IdentifierSearchDto>(nameof(IdentifierSearchDto.SecondConfirmerUserId)))
+					</label>
+					<select class="form-select" @bind="searchModel.SecondConfirmerUserId">
+						<option value="">انتخاب کنید...</option>
+						@foreach (var user in UsersKeyValue)
+						{
+							<option value="@user.Key">@user.Value</option>
+						}
+					</select>
+				</div>
 
-                <div class="col-12 text-end mt-3">
-                    <button type="reset" class="btn btn-outline-secondary px-4 me-2">
-                        <i class="bi bi-trash"></i> پاک کردن
-                    </button>
-                    <button type="button" class="btn btn-primary px-4" @onclick="OnSearch">
-                        <i class="bi bi-search"></i> جستجو
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
+				<div class="col-md-4 col-sm-6">
+					<label class="form-label fw-semibold">
+						@(ApplicationHelper.GetDisplayName<IdentifierSearchDto>(nameof(IdentifierSearchDto.IdentifierType)))
+					</label>
+					<select class="form-select" @bind="searchModel.IdentifierType">
+						<option value="">انتخاب کنید...</option>
+						@foreach (var item in Enum.GetValues<IdentifierType>())
+						{
+							<option value="@item">@item.ToDisplay()</option>
+						}
+					</select>
+				</div>
 
-    <MudTable ServerData="ServerReload" Dense="true" Striped="true" Hover="true" @ref="table">
-        <HeaderContent>
-            <MudTh>@(ApplicationHelper.GetDisplayName<IdentifierDisplayDto>(nameof(IdentifierDisplayDto.Title)))</MudTh>
-            <MudTh>@(ApplicationHelper.GetDisplayName<IdentifierDisplayDto>(nameof(IdentifierDisplayDto.DocumentNumber)))</MudTh>
-            <MudTh>@(ApplicationHelper.GetDisplayName<IdentifierDisplayDto>(nameof(IdentifierDisplayDto.Category)))</MudTh>
-            <MudTh>@(ApplicationHelper.GetDisplayName<IdentifierDisplayDto>(nameof(IdentifierDisplayDto.EditNo)))</MudTh>
-            <MudTh>@(ApplicationHelper.GetDisplayName<IdentifierDisplayDto>(nameof(IdentifierDisplayDto.ProducerUserFullName)))</MudTh>
-            <MudTh>@(ApplicationHelper.GetDisplayName<IdentifierDisplayDto>(nameof(IdentifierDisplayDto.FirstConfirmerUserFullName)))</MudTh>
-            <MudTh>@(ApplicationHelper.GetDisplayName<IdentifierDisplayDto>(nameof(IdentifierDisplayDto.SecondConfirmerUserFullName)))</MudTh>
-            <MudTh>عملیات</MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd DataLabel="@(nameof(IdentifierDisplayDto.Title))">@context.Title</MudTd>
-            <MudTd DataLabel="@(nameof(IdentifierDisplayDto.DocumentNumber))">@context.DocumentNumber</MudTd>
-            <MudTd DataLabel="@(nameof(IdentifierDisplayDto.Category))">@context.Category.ToDisplay()</MudTd>
-            <MudTd DataLabel="@(nameof(IdentifierDisplayDto.EditNo))">@context.EditNo</MudTd>
-            <MudTd DataLabel="@(nameof(IdentifierDisplayDto.ProducerUserFullName))">@context.ProducerUserFullName</MudTd>
-            <MudTd DataLabel="@(nameof(IdentifierDisplayDto.FirstConfirmerUserFullName))">@context.FirstConfirmerUserFullName</MudTd>
-            <MudTd DataLabel="@(nameof(IdentifierDisplayDto.SecondConfirmerUserFullName))">@context.SecondConfirmerUserFullName</MudTd>
-            <MudTd DataLabel="@(nameof(IdentifierDisplayDto.Id))" Style="width: 150px;">
-                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Medium" OnClick="@(() => EditItem(context.Id))"></MudIconButton>
-                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Medium" OnClick="@(() => DeleteItem(context.Id))"></MudIconButton>
-            </MudTd>
-        </RowTemplate>
-        <NoRecordsContent>
-            <MudText>موردی یافت نشد.</MudText>
-        </NoRecordsContent>
-        <LoadingContent>
-            <MudText>Loading...</MudText>
-        </LoadingContent>
-        <PagerContent>
-            <MudTablePager />
-        </PagerContent>
-    </MudTable>
+				<div class="col-12 text-end mt-3">
+					<button type="reset" class="btn btn-outline-secondary px-4 me-2">
+						<i class="bi bi-trash"></i> پاک کردن
+					</button>
+					<button type="button" class="btn btn-primary px-4" @onclick="OnSearch">
+						<i class="bi bi-search"></i> جستجو
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	<MudTable ServerData="ServerReload" Dense="true" Striped="true" Hover="true" @ref="table">
+		<HeaderContent>
+			<MudTh>@(ApplicationHelper.GetDisplayName<IdentifierDisplayDto>(nameof(IdentifierDisplayDto.Title)))</MudTh>
+			<MudTh>@(ApplicationHelper.GetDisplayName<IdentifierDisplayDto>(nameof(IdentifierDisplayDto.DocumentNumber)))</MudTh>
+			<MudTh>@(ApplicationHelper.GetDisplayName<IdentifierDisplayDto>(nameof(IdentifierDisplayDto.Category)))</MudTh>
+			<MudTh>@(ApplicationHelper.GetDisplayName<IdentifierDisplayDto>(nameof(IdentifierDisplayDto.IdentifierType)))</MudTh>
+			<MudTh>@(ApplicationHelper.GetDisplayName<IdentifierDisplayDto>(nameof(IdentifierDisplayDto.EditNo)))</MudTh>
+			<MudTh>@(ApplicationHelper.GetDisplayName<IdentifierDisplayDto>(nameof(IdentifierDisplayDto.ProducerUserFullName)))</MudTh>
+			<MudTh>@(ApplicationHelper.GetDisplayName<IdentifierDisplayDto>(nameof(IdentifierDisplayDto.FirstConfirmerUserFullName)))</MudTh>
+			<MudTh>@(ApplicationHelper.GetDisplayName<IdentifierDisplayDto>(nameof(IdentifierDisplayDto.SecondConfirmerUserFullName)))</MudTh>
+			<MudTh>@(ApplicationHelper.GetDisplayName<IdentifierDisplayDto>(nameof(IdentifierDisplayDto.AttachmentFileId)))</MudTh>
+			<MudTh>عملیات</MudTh>
+		</HeaderContent>
+		<RowTemplate>
+			<MudTd DataLabel="@(nameof(IdentifierDisplayDto.Title))">@context.Title</MudTd>
+			<MudTd DataLabel="@(nameof(IdentifierDisplayDto.DocumentNumber))">@context.DocumentNumber</MudTd>
+			<MudTd DataLabel="@(nameof(IdentifierDisplayDto.Category))">@context.Category.ToDisplay()</MudTd>
+			<MudTd DataLabel="@(nameof(IdentifierDisplayDto.IdentifierType))">@context.IdentifierType.ToDisplay()</MudTd>
+			<MudTd DataLabel="@(nameof(IdentifierDisplayDto.EditNo))">@context.EditNo</MudTd>
+			<MudTd DataLabel="@(nameof(IdentifierDisplayDto.ProducerUserFullName))">@context.ProducerUserFullName</MudTd>
+			<MudTd DataLabel="@(nameof(IdentifierDisplayDto.FirstConfirmerUserFullName))">@context.FirstConfirmerUserFullName</MudTd>
+			<MudTd DataLabel="@(nameof(IdentifierDisplayDto.SecondConfirmerUserFullName))">@context.SecondConfirmerUserFullName</MudTd>
+			<MudTd DataLabel="@(nameof(IdentifierDisplayDto.AttachmentFileId))">
+				@if (context.AttachmentFileId.HasValue)
+				{
+					@* href = "@ApplicationHelper.GetAttachmentFileApiPath(context.AttachmentFileId.Value)" *@
+					<button @onclick="() => DownloadFileAsync(context.AttachmentFileId.Value, context.AttachmentFileName)" class="btn btn-default">دانلود</button>
+				}
+			</MudTd>
+			<MudTd DataLabel="@(nameof(IdentifierDisplayDto.Id))" Style="width: 150px;">
+				<MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Medium" OnClick="@(() => EditItem(context.Id))"></MudIconButton>
+				<MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Medium" OnClick="@(() => DeleteItem(context.Id))"></MudIconButton>
+			</MudTd>
+		</RowTemplate>
+		<NoRecordsContent>
+			<MudText>موردی یافت نشد.</MudText>
+		</NoRecordsContent>
+		<LoadingContent>
+			<MudText>Loading...</MudText>
+		</LoadingContent>
+		<PagerContent>
+			<MudTablePager />
+		</PagerContent>
+	</MudTable>
 }
 
 @code {
-    enum FormState { None, Create, Edit }
-    private FormState formState = FormState.None;
-    private int? id = null;
+	enum FormState { None, Create, Edit }
+	private FormState formState = FormState.None;
+	private int? id = null;
 
-    private IdentifierSearchDto searchModel = new();
-    private MudTable<IdentifierDisplayDto> table;
-    private List<KeyValuePair<int, string>> UsersKeyValue = new();
+	[Parameter]
+	public string? identifierType { get; set; }
+	public IdentifierType? IdentifierType { get; set; }
 
-    NotificationClassName ClassName = NotificationClassName.Success;
-    string MessageBody = "عملیات با موفقت انجام شد.";
+	private IdentifierSearchDto searchModel = new();
+	private MudTable<IdentifierDisplayDto> table;
+	private List<KeyValuePair<int, string>> UsersKeyValue = new();
 
-    protected override async Task OnInitializedAsync()
-    {
-        var apiResult = await httpHelper
-            .GetByFilterAsync<UserSearchDto, ApiResult<List<KeyValuePair<int, string>>>>("api/User/GetByFilterForDropDown", new());
+	NotificationClassName ClassName = NotificationClassName.Success;
+	string MessageBody = "عملیات با موفقت انجام شد.";
 
-        UsersKeyValue = apiResult?.Data?.ToList() ?? new();
-    }
+	protected override async Task OnInitializedAsync()
+	{
+		var apiResult = await httpHelper
+			.GetByFilterAsync<UserSearchDto, ApiResult<List<KeyValuePair<int, string>>>>("api/User/GetByFilterForDropDown", new());
 
-    private async Task<TableData<IdentifierDisplayDto>> ServerReload(TableState state, CancellationToken token)
-    {
-        searchModel.CalculateTakeAndSkip(state.Page, state.PageSize);
-        var apiResult = await httpHelper
-            .GetByFilterAsync<IdentifierSearchDto, ApiResult<BaseGridDto<IdentifierDisplayDto>>>("api/Identifier/GetByFilter", searchModel);
+		UsersKeyValue = apiResult?.Data?.ToList() ?? new();
+	}
 
-        var items = apiResult?.Data?.Data ?? Enumerable.Empty<IdentifierDisplayDto>();
-        var total = apiResult?.Data?.TotalCount ?? 0;
-        return new TableData<IdentifierDisplayDto> { TotalItems = total, Items = items };
-    }
+	protected override Task OnParametersSetAsync()
+	{
+		if (Enum.TryParse<IdentifierType>(identifierType, true, out var parsed))
+			IdentifierType = parsed;
+		else
+			IdentifierType = null;
 
-    private void OnSearch() => table?.ReloadServerData();
+		searchModel.IdentifierType = this.IdentifierType;
+		table?.ReloadServerData();
+		return base.OnParametersSetAsync();
+	}
 
-    private void ClearForm()
-    {
-        searchModel = new IdentifierSearchDto();
-        OnSearch();
-    }
+	private async Task<TableData<IdentifierDisplayDto>> ServerReload(TableState state, CancellationToken token)
+	{
+		searchModel.CalculateTakeAndSkip(state.Page, state.PageSize);
+		var apiResult = await httpHelper
+			.GetByFilterAsync<IdentifierSearchDto, ApiResult<BaseGridDto<IdentifierDisplayDto>>>("api/Identifier/GetByFilter", searchModel);
 
-    private void CreateNewItem() => formState = FormState.Create;
+		var items = apiResult?.Data?.Data ?? Enumerable.Empty<IdentifierDisplayDto>();
+		var total = apiResult?.Data?.TotalCount ?? 0;
+		return new TableData<IdentifierDisplayDto> { TotalItems = total, Items = items };
+	}
 
-    private void EditItem(int itemId)
-    {
-        this.id = itemId;
-        formState = FormState.Edit;
-    }
+	private void OnSearch() => table?.ReloadServerData();
 
-    private async Task DeleteItem(int itemId)
-    {
-        this.id = itemId;
-        formState = FormState.None;
+	private void ClearForm()
+	{
+		searchModel = new IdentifierSearchDto();
+		OnSearch();
+	}
 
-        var confirmResult = await JSRuntime.InvokeAsync<bool>("confirmDelete", "آیا از حذف این آیتم اطمینان دارید؟");
-        if (confirmResult)
-        {
-            var apiResult = await httpHelper.DeleteAsync<ApiResult>($"api/Identifier?id={this.id}");
+	private void CreateNewItem() => formState = FormState.Create;
 
-            if(apiResult?.IsSuccess ?? false)
-            {
-                ClassName = NotificationClassName.Success;
-                MessageBody = "عملیات با موفقت انجام شد.";
-            }
-            else
-            {
-                ClassName = NotificationClassName.Error;
-                MessageBody = apiResult?.Message ?? "خطایی رخ داده است. لطفا با پشتیبانی تماس بگیرید.";
-            }
+	private void EditItem(int itemId)
+	{
+		this.id = itemId;
+		formState = FormState.Edit;
+	}
 
-            await ShowMessage();
-            table?.ReloadServerData();
-        }
-    }
+	private async Task DeleteItem(int itemId)
+	{
+		this.id = itemId;
+		formState = FormState.None;
 
-    private async Task HandleCreateCompleted(bool saved)
-    {
-        formState = FormState.None;
-        this.id = null;
-        if (!saved) return;
+		var confirmResult = await JSRuntime.InvokeAsync<bool>("confirmDelete", "آیا از حذف این آیتم اطمینان دارید؟");
+		if (confirmResult)
+		{
+			var apiResult = await httpHelper.DeleteAsync<ApiResult>($"api/Identifier?id={this.id}");
 
-        ClassName = NotificationClassName.Success;
-        MessageBody = "عملیات با موفقت انجام شد.";
-        await ShowMessage();
-        table?.ReloadServerData();
-    }
+			if (apiResult?.IsSuccess ?? false)
+			{
+				ClassName = NotificationClassName.Success;
+				MessageBody = "عملیات با موفقت انجام شد.";
+			}
+			else
+			{
+				ClassName = NotificationClassName.Error;
+				MessageBody = apiResult?.Message ?? "خطایی رخ داده است. لطفا با پشتیبانی تماس بگیرید.";
+			}
 
-    private Task ShowMessage() => JSRuntime.InvokeVoidAsync("showToast", ClassName.ToDisplay(), MessageBody).AsTask();
+			await ShowMessage();
+			table?.ReloadServerData();
+		}
+	}
+
+	private async Task HandleCreateCompleted(bool saved)
+	{
+		formState = FormState.None;
+		this.id = null;
+		if (!saved) return;
+
+		ClassName = NotificationClassName.Success;
+		MessageBody = "عملیات با موفقت انجام شد.";
+		await ShowMessage();
+		table?.ReloadServerData();
+	}
+
+	private async Task DownloadFileAsync(int attachmentFileId, string name)
+	{
+		try
+		{
+			var endpoint = $"api/AttachmentFile/DownloadAttachment/{attachmentFileId}";
+			var fileBytes = await httpHelper.DownloadFileAsync(endpoint);
+
+			if (fileBytes == null || fileBytes.Length == 0)
+			{
+				MessageBody = "دانلود فایل ناموفق بود!";
+				ClassName = NotificationClassName.Error;
+				await ShowMessage();
+				return;
+			}
+
+			var base64 = Convert.ToBase64String(fileBytes);
+
+			await JSRuntime.InvokeVoidAsync("downloadFileFromBytes", name, base64);
+
+			// var fileName = $"{name}_{attachmentFileId}.bin";
+			// var savePath = Path.Combine(
+			// 	Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+			// 	fileName
+			// );
+
+			// await File.WriteAllBytesAsync(savePath, fileBytes);
+			MessageBody = $"فایل با موفقیت ذخیره شد.";
+			ClassName = NotificationClassName.Success;
+			await ShowMessage();
+		}
+		catch (Exception ex)
+		{
+			MessageBody = $"خطا در دانلود فایل:\n{ex.Message}";
+			ClassName = NotificationClassName.Error;
+			await ShowMessage();
+		}
+	}
+
+	private Task ShowMessage() => JSRuntime.InvokeVoidAsync("showToast", ClassName.ToDisplay(), MessageBody).AsTask();
 }

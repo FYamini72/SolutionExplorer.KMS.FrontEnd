@@ -1,0 +1,180 @@
+﻿@inject IHttpService _httpService
+@inject IJSRuntime _jsRuntime
+
+@if (showSpinner)
+{
+	<Spinner />
+}
+else
+{
+	<div class="container">
+		<div class="text-center mt-5">
+			<h1 class="page-title">
+				@(this.Id.HasValue ? "ویرایش منبع" : "ایجاد منبع جدید")
+			</h1>
+		</div>
+
+		<div class="row">
+			<div class="col-lg-10 mx-auto">
+				<div class="card mt-2 mx-auto beauty-card">
+					<div class="card-body bg-light">
+						<div class="container">
+							<EditForm Model="@Model" OnValidSubmit="HandleValidSubmit">
+								<DataAnnotationsValidator />
+								<div class="controls">
+									<input type="hidden" @bind-value="Model.Id" />
+
+									<div class="row row-margin-10">
+										<div class="form-group col-md-12">
+											<label>
+												@(ApplicationHelper.GetDisplayName<ReferenceCreateDto>(nameof(ReferenceCreateDto.Title)))
+											</label>
+											<InputText class="form-control" @bind-Value="Model.Title" />
+											<ValidationMessage For="@(() => Model.Title)" />
+										</div>
+									</div>
+
+									<div class="row row-margin-10">
+										<div class="form-group col-md-12">
+											<div class="form-group">
+												<label>
+													@(ApplicationHelper.GetDisplayName<ReferenceCreateDto>(nameof(ReferenceCreateDto.SelectedFile)))
+												</label>
+												<InputFile class="form-control" OnChange="HandleFileSelected" />
+												<ValidationMessage For="@(() => Model.SelectedFile)" />
+											</div>
+										</div>
+									</div>
+
+									<div class="row row-margin-10">
+										<div class="form-group">
+											<label>
+												@(ApplicationHelper.GetDisplayName<ReferenceCreateDto>(nameof(ReferenceCreateDto.Description)))
+											</label>
+											<InputTextArea class="form-control" @bind-Value="Model.Description"></InputTextArea>
+											<ValidationMessage For="@(() => Model.Description)" />
+										</div>
+									</div>
+
+									<div class="row row-margin-10">
+										<div class="col-md-6">
+											<input type="submit" class="btn btn-success btn-send pt-2 btn-block" value="ثبت اطلاعات" />
+										</div>
+										<div class="col-md-6">
+											<button type="button" @onclick="Cancel" class="btn btn-primary btn-send pt-2 btn-block">انصراف</button>
+										</div>
+									</div>
+								</div>
+							</EditForm>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
+@code {
+	[Parameter] public EventCallback<bool> OnSavedChanges { get; set; }
+	[Parameter] public int? Id { get; set; } = null;
+
+	public ReferenceCreateDto Model { get; set; } = new();
+
+	NotificationClassName ClassName = NotificationClassName.Success;
+	string MessageBody = "عملیات با موفقت انجام شد.";
+	private bool showSpinner;
+
+	protected override async Task OnParametersSetAsync()
+	{
+		if (!Id.HasValue)
+		{
+			return;
+		}
+
+		showSpinner = true;
+
+		try
+		{
+			var apiResult = await _httpService.GetAsync<ApiResult<ReferenceDisplayDto>>($"api/Reference/{Id}");
+
+			if (apiResult?.IsSuccess ?? false)
+			{
+				Model = apiResult?.Data?.Adapt<ReferenceCreateDto>() ?? new();
+			}
+			else
+			{
+				ClassName = NotificationClassName.Error;
+				MessageBody = apiResult?.Message ?? "خطایی رخ داده است. لطفا با پشتیبانی تماس بگیرید.";
+				await ShowMessage();
+			}
+		}
+		catch (Exception)
+		{
+			ClassName = NotificationClassName.Error;
+			MessageBody = "خطا در دریافت اطلاعات کاربر.";
+			await ShowMessage();
+		}
+		finally
+		{
+			showSpinner = false;
+		}
+	}
+
+	private async Task HandleValidSubmit()
+	{
+		showSpinner = true;
+		try
+		{
+			ApiResult<ReferenceDisplayDto>? apiResult = null;
+
+			if (Model.Id > 0)
+				apiResult = await _httpService.PutMultipartAsync<ReferenceCreateDto, ApiResult<ReferenceDisplayDto>>("api/Reference", Model);
+			else
+				apiResult = await _httpService.PostMultipartAsync<ReferenceCreateDto, ApiResult<ReferenceDisplayDto>>("api/Reference", Model);
+
+			if (!apiResult?.IsSuccess ?? false)
+			{
+				ClassName = NotificationClassName.Error;
+				MessageBody = apiResult?.Message ?? "خطایی رخ داده است. لطفا با پشتیبانی تماس بگیرید.";
+				await ShowMessage();
+				return;
+			}
+
+			await OnSavedChanges.InvokeAsync(true);
+		}
+		catch (Exception)
+		{
+			ClassName = NotificationClassName.Error;
+			MessageBody = "خطایی رخ داده است. لطفا با پشتیبانی تماس بگیرید.";
+			await ShowMessage();
+		}
+		finally
+		{
+			showSpinner = false;
+		}
+	}
+
+	private async Task HandleFileSelected(InputFileChangeEventArgs e)
+	{
+		var file = e.File;
+		if (file == null)
+		{
+			return;
+		}
+
+		using var ms = new MemoryStream();
+		await file.OpenReadStream(maxAllowedSize: 20 * 1024 * 1024).CopyToAsync(ms);
+
+		Model.SelectedFile = new BaseFileInfo()
+		{
+			SelectedFile = file,
+			SelectedFileBytes = ms.ToArray(),
+			SelectedFileName = file.Name,
+			SelectedFileContentType = file.ContentType
+		};
+	}
+
+	private Task Cancel() => OnSavedChanges.InvokeAsync(false);
+
+	private Task ShowMessage() => _jsRuntime.InvokeVoidAsync("showToast", ClassName.ToDisplay(), MessageBody).AsTask();
+}

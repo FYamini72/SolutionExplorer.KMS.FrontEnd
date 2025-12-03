@@ -1,6 +1,9 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.AspNetCore.Components.Forms;
+using Newtonsoft.Json;
 using SolutionExplorer.KMS.SharedUI.Services.Interfaces;
 using System.Net.Http.Headers;
+using System.Reflection;
+using System.Text.Json;
 
 namespace SolutionExplorer.KMS.SharedUI.Services.Implementations
 {
@@ -142,6 +145,180 @@ namespace SolutionExplorer.KMS.SharedUI.Services.Implementations
                 return JsonConvert.DeserializeObject<TResponse>(responseContent ?? "") ?? default(TResponse);
             }
             return default(TResponse);
+        }
+
+        /// <inheritdoc />
+        public async Task<TResponse?> PostMultipartAsync<TRequest, TResponse>(
+            string endpoint,
+            TRequest model,
+            int maxSize = 20,
+            bool addAuthToken = true)
+        {
+            if (model == null)
+                throw new ArgumentNullException(nameof(model));
+
+            using var request = new HttpRequestMessage(HttpMethod.Post, _baseUrl + endpoint);
+            using var multipart = new MultipartFormDataContent();
+
+            // افزودن توکن احراز هویت در صورت نیاز
+            if (addAuthToken)
+            {
+                var token = await _localStorageService.GetItemAsync<string>("authToken");
+                if (!string.IsNullOrWhiteSpace(token))
+                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+
+            // تابع کمکی برای افزودن مقدار متنی
+            void AddStringField(string name, object? value)
+            {
+                if (value == null) return;
+                multipart.Add(new StringContent(value.ToString()!, System.Text.Encoding.UTF8), name);
+            }
+
+            var props = typeof(TRequest).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+
+            foreach (var prop in props)
+            {
+                var value = prop.GetValue(model);
+                if (value == null) continue;
+
+                // اگر پراپرتی از نوع BaseFileInfo بود، فایل را استخراج کن
+                var propType = prop.PropertyType;
+                if (!propType.IsPrimitive && propType != typeof(string))
+                {
+                    var subProps = propType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+                    var bytesProp = subProps.FirstOrDefault(p => p.Name.Equals("SelectedFileBytes", StringComparison.OrdinalIgnoreCase));
+                    var nameProp = subProps.FirstOrDefault(p => p.Name.Equals("SelectedFileName", StringComparison.OrdinalIgnoreCase));
+                    var contentTypeProp = subProps.FirstOrDefault(p => p.Name.Equals("SelectedFileContentType", StringComparison.OrdinalIgnoreCase));
+
+                    var fileBytes = bytesProp?.GetValue(value) as byte[];
+                    var fileName = nameProp?.GetValue(value)?.ToString() ?? "file.bin";
+                    var contentType = contentTypeProp?.GetValue(value)?.ToString() ?? "application/octet-stream";
+
+                    if (fileBytes != null && fileBytes.Length > 0)
+                    {
+                        if (fileBytes.Length > maxSize * 1024L * 1024L)
+                            throw new InvalidOperationException($"حجم فایل {fileName} بیش از {maxSize} مگابایت است.");
+
+                        var fileContent = new ByteArrayContent(fileBytes);
+                        fileContent.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+                        multipart.Add(fileContent, prop.Name, fileName);
+                        continue;
+                    }
+                }
+
+                // مقادیر متنی و ساده
+                AddStringField(prop.Name, value);
+            }
+
+            request.Content = multipart;
+
+            using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+            var json = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+                return default;
+
+            if (string.IsNullOrWhiteSpace(json))
+                return default;
+
+            return JsonConvert.DeserializeObject<TResponse>(json);
+        }
+
+        /// <inheritdoc />
+        public async Task<TResponse?> PutMultipartAsync<TRequest, TResponse>(
+            string endpoint,
+            TRequest model,
+            int maxSize = 20,
+            bool addAuthToken = true)
+        {
+            if (model == null)
+                throw new ArgumentNullException(nameof(model));
+
+            using var request = new HttpRequestMessage(HttpMethod.Put, _baseUrl + endpoint);
+            using var multipart = new MultipartFormDataContent();
+
+            // افزودن توکن احراز هویت در صورت نیاز
+            if (addAuthToken)
+            {
+                var token = await _localStorageService.GetItemAsync<string>("authToken");
+                if (!string.IsNullOrWhiteSpace(token))
+                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+
+            // تابع کمکی برای افزودن مقدار متنی
+            void AddStringField(string name, object? value)
+            {
+                if (value == null) return;
+                multipart.Add(new StringContent(value.ToString()!, System.Text.Encoding.UTF8), name);
+            }
+
+            var props = typeof(TRequest).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+
+            foreach (var prop in props)
+            {
+                var value = prop.GetValue(model);
+                if (value == null) continue;
+
+                // اگر پراپرتی از نوع BaseFileInfo بود، فایل را استخراج کن
+                var propType = prop.PropertyType;
+                if (!propType.IsPrimitive && propType != typeof(string))
+                {
+                    var subProps = propType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+                    var bytesProp = subProps.FirstOrDefault(p => p.Name.Equals("SelectedFileBytes", StringComparison.OrdinalIgnoreCase));
+                    var nameProp = subProps.FirstOrDefault(p => p.Name.Equals("SelectedFileName", StringComparison.OrdinalIgnoreCase));
+                    var contentTypeProp = subProps.FirstOrDefault(p => p.Name.Equals("SelectedFileContentType", StringComparison.OrdinalIgnoreCase));
+
+                    var fileBytes = bytesProp?.GetValue(value) as byte[];
+                    var fileName = nameProp?.GetValue(value)?.ToString() ?? "file.bin";
+                    var contentType = contentTypeProp?.GetValue(value)?.ToString() ?? "application/octet-stream";
+
+                    if (fileBytes != null && fileBytes.Length > 0)
+                    {
+                        if (fileBytes.Length > maxSize * 1024L * 1024L)
+                            throw new InvalidOperationException($"حجم فایل {fileName} بیش از {maxSize} مگابایت است.");
+
+                        var fileContent = new ByteArrayContent(fileBytes);
+                        fileContent.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+                        multipart.Add(fileContent, prop.Name, fileName);
+                        continue;
+                    }
+                }
+
+                // مقادیر متنی و ساده
+                AddStringField(prop.Name, value);
+            }
+
+            request.Content = multipart;
+
+            using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+            var json = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+                return default;
+
+            if (string.IsNullOrWhiteSpace(json))
+                return default;
+
+            return JsonConvert.DeserializeObject<TResponse>(json);
+        }
+
+        public async Task<byte[]?> DownloadFileAsync(string endpoint, bool addAuthToken = true)
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, _baseUrl + endpoint);
+
+            if (addAuthToken)
+            {
+                var token = await _localStorageService.GetItemAsync<string>("authToken");
+                if (!string.IsNullOrEmpty(token))
+                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+
+            using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+            if (!response.IsSuccessStatusCode)
+                return null;
+
+            return await response.Content.ReadAsByteArrayAsync();
         }
     }
 }

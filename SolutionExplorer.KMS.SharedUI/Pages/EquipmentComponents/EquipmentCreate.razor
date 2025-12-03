@@ -10,14 +10,14 @@ else
 {
     <div class="container">
         <div class="text-center mt-5">
-            <h1>
+            <h1 class="page-title">
                 @(this.Id.HasValue ? "ویرایش دستگاه" : "ایجاد دستگاه جدید")
             </h1>
         </div>
 
         <div class="row">
-            <div class="col-lg-7 mx-auto">
-                <div class="card mt-2 mx-auto p-4 bg-light">
+            <div class="col-lg-10 mx-auto">
+                <div class="card mt-2 mx-auto beauty-card">
                     <div class="card-body bg-light">
                         <div class="container">
                             <EditForm Model="@Model" OnValidSubmit="HandleValidSubmit">
@@ -26,17 +26,15 @@ else
                                     <input type="hidden" @bind-value="Model.Id" />
 
                                     <div class="row row-margin-10">
-                                        <div class="form-group">
+                                        <div class="form-group col-md-6">
                                             <label>
                                                 @(ApplicationHelper.GetDisplayName<EquipmentCreateDto>(nameof(EquipmentCreateDto.Title)))
                                             </label>
                                             <InputText class="form-control" @bind-Value="Model.Title" />
                                             <ValidationMessage For="@(() => Model.Title)" />
                                         </div>
-                                    </div>
-
-                                    <div class="row row-margin-10">
-                                        <div class="form-group">
+                                    
+                                        <div class="form-group col-md-6">
                                             <label>
                                                 @(ApplicationHelper.GetDisplayName<EquipmentCreateDto>(nameof(EquipmentCreateDto.Code)))
                                             </label>
@@ -46,17 +44,15 @@ else
                                     </div>
 
                                     <div class="row row-margin-10">
-                                        <div class="form-group">
+                                        <div class="form-group col-md-6">
                                             <label>
                                                 @(ApplicationHelper.GetDisplayName<EquipmentCreateDto>(nameof(EquipmentCreateDto.EquipmentModel)))
                                             </label>
                                             <InputText class="form-control" @bind-Value="Model.EquipmentModel" />
                                             <ValidationMessage For="@(() => Model.EquipmentModel)" />
                                         </div>
-                                    </div>
-
-                                    <div class="row row-margin-10">
-                                        <div class="form-group">
+                                   
+                                        <div class="form-group col-md-6">
                                             <label>
                                                 @(ApplicationHelper.GetDisplayName<EquipmentCreateDto>(nameof(EquipmentCreateDto.SerialNo)))
                                             </label>
@@ -66,17 +62,15 @@ else
                                     </div>
 
                                     <div class="row row-margin-10">
-                                        <div class="form-group">
+                                        <div class="form-group col-md-6">
                                             <label>
                                                 @(ApplicationHelper.GetDisplayName<EquipmentCreateDto>(nameof(EquipmentCreateDto.Manufacturer)))
                                             </label>
                                             <InputText class="form-control" @bind-Value="Model.Manufacturer" />
                                             <ValidationMessage For="@(() => Model.Manufacturer)" />
                                         </div>
-                                    </div>
-
-                                    <div class="row row-margin-10">
-                                        <div class="form-group">
+                                    
+                                        <div class="form-group col-md-6">
                                             <label>
                                                 @(ApplicationHelper.GetDisplayName<EquipmentCreateDto>(nameof(EquipmentCreateDto.ManufactureCountry)))
                                             </label>
@@ -86,7 +80,7 @@ else
                                     </div>
 
                                     <div class="row row-margin-10">
-                                        <div class="form-group">
+                                        <div class="form-group col-md-6">
                                             <label>
                                                 @(ApplicationHelper.GetDisplayName<EquipmentCreateDto>(nameof(EquipmentCreateDto.FirstConfirmerUserId)))
                                             </label>
@@ -99,10 +93,8 @@ else
                                             </InputSelect>
                                             <ValidationMessage For="@(() => Model.FirstConfirmerUserId)" />
                                         </div>
-                                    </div>
 
-                                    <div class="row row-margin-10">
-                                        <div class="form-group">
+                                        <div class="form-group col-md-6">
                                             <label>
                                                 @(ApplicationHelper.GetDisplayName<EquipmentCreateDto>(nameof(EquipmentCreateDto.SecondConfirmerUserId)))
                                             </label>

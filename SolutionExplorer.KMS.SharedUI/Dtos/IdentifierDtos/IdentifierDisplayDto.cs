@@ -31,5 +31,16 @@ namespace SolutionExplorer.KMS.SharedUI.Dtos.IdentifierDtos
         public int? SecondConfirmerUserId { get; set; }
         [Display(Name = "تصدیق کننده")]
         public string? SecondConfirmerUserFullName { get; set; }
+
+        [Display(Name = "توضیحات")]
+        public string? Description { get; set; }
+
+        [Display(Name = "فایل پیوست")]
+        public int? AttachmentFileId { get; set; }
+        public string? AttachmentFileName { get; set; }
+
+
+        [Display(Name = "نوع شناسنامه")]
+        public IdentifierType IdentifierType { get; set; }
     }
 }
