@@ -1,0 +1,150 @@
+﻿@using SolutionExplorer.KMS.SharedUI.Dtos.QualityControlResultDtos
+@* @using SolutionExplorer.KMS.SharedUI.Dtos.QualityControlResultDtos;
+@if (Items != null && Items.Any())
+{
+    bool hasHaloDiameter = !string.IsNullOrEmpty(Items.First().HaloDiameter);
+    bool hasExpectedResult = !string.IsNullOrEmpty(Items.First().ExpectedResult);
+    
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>ارگانیسم کنترل</th>
+					<th class="@(hasExpectedResult ? "hidden" : "")">نتیجه مورد انتظار (معیار پذیرش)</th>
+                    <th class="@(hasHaloDiameter ? "hidden" : "")">قطر هاله</th>
+                    <th>نتیجه</th>
+					<th class="@(Items.All(x => x.IsConfirmed) ? "hidden" : "")">اقدامات اصلاحی</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Items)
+                {
+                    <tr @key="item.QCBaseInfoExpectedResultId">
+                        <td>@item.ATCCControlOrganism</td>
+                        <td>@item.ExpectedResult</td>
+						<td class="@(hasHaloDiameter ? "hidden" : "")">
+                                <InputText class="form-control" @bind-Value="item.HaloDiameter" />
+                        </td>
+                        <td>
+                            <div class="form-check">
+                                <InputCheckbox class="form-check-input"
+                                               @bind-Value="item.IsConfirmed" />
+                                <label class="form-check-label">
+                                    مورد تأیید
+                                </label>
+                            </div>
+						</td>
+						<td class="@(item.IsConfirmed == false ? "hidden" : "")">
+                            <InputText class="form-control" @bind-Value="item.CorrectiveActions" />
+						</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+
+@code {
+    [Parameter, EditorRequired]
+    public List<QualityControlResultCreateDto> Items { get; set; } = new();
+} *@
+
+
+
+@*
+    این بخش برای نمایش نتایج کنترل کیفیت است.
+    اگر 'ExpectedResult' برای آیتم‌ها وجود داشته باشد، ستون "نتیجه مورد انتظار" به صورت عادی نمایش داده می‌شود.
+    در غیر این صورت، این ستون به چند زیرستون تقسیم می‌شود تا جزئیات بیشتری نمایش داده شود.
+*@
+@if (Items != null && Items.Any())
+{
+    bool hasHaloDiameter = Items.Any(x=>!string.IsNullOrEmpty(x.HaloDiameter));
+    bool hasExpectedResult = Items.All(x => !string.IsNullOrEmpty(x.ExpectedResult));
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ارگانیسم کنترل</th>
+                @if (hasExpectedResult)
+                {
+                    <th width="300">نتیجه مورد انتظار (معیار پذیرش)</th>
+                }
+                else
+                {
+                    @* اگر نتیجه مورد انتظار وجود ندارد، ستون را با colspan تقسیم می‌کنیم *@
+                    <th colspan="4">نتیجه مورد انتظار (معیار پذیرش)</th>
+                }
+                @if (hasHaloDiameter)
+                {
+                    <th width="80">قطر هاله</th>
+                }
+                <th width="150">نتیجه</th>
+                @* <th>اقدامات اصلاحی</th> *@
+            </tr>
+            @* این بخش برای نمایش زیرستون‌ها در صورتی که hasExpectedResult برابر false باشد *@
+            @if (!hasExpectedResult)
+            {
+                <tr>
+                    <td></td> @* برای هم‌ترازی با ستون "ارگانیسم کنترل" *@
+                    <td>پلی گروه A</td>
+                    <td>پلی گروه B</td>
+                    <td>پلی گروه C</td>
+                    <td>پلی گروه D</td>
+                    @if (hasHaloDiameter)
+                    {
+                        <td></td> @* برای هم‌ترازی با ستون "قطر هاله" *@
+                    }
+                    <td></td> @* برای هم‌ترازی با ستون "نتیجه" *@
+                    @* <td></td> *@
+                </tr>
+            }
+        </thead>
+        <tbody>
+            @foreach (var item in Items)
+            {
+                <tr>
+                    <td>@item.ATCCControlOrganism</td>
+                    @if (hasExpectedResult)
+                    {
+                        <td>@item.ExpectedResult</td>
+                    }
+                    else
+                    {
+                        @* اینجا باید داده‌های مربوط به زیرستون‌ها را نمایش دهی *@
+                        @* فرض می‌کنیم این داده‌ها در ساختار Item شما وجود دارند *@
+                        @* مثال: *@
+                        <td>@item.PoliGroup_A</td> @* فرض کنید این پراپرتی وجود دارد *@
+                        <td>@item.PoliGroup_B</td> @* فرض کنید این پراپرتی وجود دارد *@
+                        <td>@item.PoliGroup_C</td> @* فرض کنید این پراپرتی وجود دارد *@
+                        <td>@item.PoliGroup_D</td> @* فرض کنید این پراپرتی وجود دارد *@
+                    }
+                    @if (hasHaloDiameter)
+                    {
+                        <td>
+                            <InputText class="@(string.IsNullOrEmpty(item.HaloDiameter) ? "hidden" : "form-control")" @bind-Value="item.HaloDiameter" />
+                        </td>
+                    }
+                    <td>
+                        <div class="form-check">
+                            <InputCheckbox class="form-check-input"
+                                           @bind-Value="item.IsConfirmed" />
+                            <label class="form-check-label">
+                                مورد تأیید
+                            </label>
+                        </div>
+                    </td>
+                    @* این بخش برای نمایش اقدامات اصلاحی است، اگر مورد نیاز باشد *@
+                    @* <td>
+                        <InputText class="@(item.IsConfirmed ? "hidden" : "form-control")" @bind-Value="item.CorrectiveActions" />
+                    </td> *@
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public List<QualityControlResultCreateDto> Items { get; set; } = new(); // فرض می‌کنیم Dto شما این نام را دارد
+}

@@ -1,0 +1,266 @@
+﻿@using SolutionExplorer.KMS.SharedUI.Dtos.QualityControlBaseInfoDtos
+@using System.Globalization
+@inject IHttpService _httpService
+@inject IJSRuntime _jsRuntime
+
+@if (showSpinner)
+{
+	<Spinner />
+}
+else
+{
+	<div class="container">
+		<div class="text-center mt-5">
+			<h1 class="page-title">
+				@(this.Id.HasValue ? "ویرایش تنظیمات کنترل کیفی" : "ایجاد تنظیمات کنترل کیفی جدید")
+			</h1>
+		</div>
+
+		<div class="row">
+			<div class="col-lg-10 mx-auto">
+				<div class="card mt-2 mx-auto beauty-card">
+					<div class="card-body bg-light">
+						<div class="container">
+							<EditForm Model="@Model" OnValidSubmit="HandleValidSubmit">
+								<DataAnnotationsValidator />
+								<div class="controls">
+									<input type="hidden" @bind-value="Model.Id" />
+
+									<div class="row row-margin-10">
+										<div class="form-group col-md-8">
+											<label>
+												@(ApplicationHelper.GetDisplayName<QualityControlBaseInfoCreateDto>(nameof(QualityControlBaseInfoCreateDto.Title)))
+											</label>
+											<InputText class="form-control" @bind-Value="Model.Title" />
+											<ValidationMessage For="@(() => Model.Title)" />
+										</div>
+
+										<div class="form-group col-md-4">
+											<label>
+												@(ApplicationHelper.GetDisplayName<QualityControlBaseInfoCreateDto>(nameof(QualityControlBaseInfoCreateDto.Category)))
+											</label>
+											<InputSelect class="form-select" @bind-value="Model.Category">
+												<option value="">انتخاب کنید...</option>
+												@foreach (var item in Enum.GetValues<QCCategory>())
+												{
+													<option value="@item">@item.ToDisplay()</option>
+												}
+											</InputSelect>
+											<ValidationMessage For="@(() => Model.Category)" />
+										</div>
+									</div>
+@* 
+									<div class="row row-margin-10">
+										<div class="form-group col-md-6">
+											<label>
+												@(ApplicationHelper.GetDisplayName<QualityControlBaseInfoCreateDto>(nameof(QualityControlBaseInfoCreateDto.Manufacturer)))
+											</label>
+											<InputText class="form-control" @bind-Value="Model.Manufacturer" />
+											<ValidationMessage For="@(() => Model.Manufacturer)" />
+										</div>
+										<div class="form-group col-md-6">
+											<label>
+												@(ApplicationHelper.GetDisplayName<QualityControlBaseInfoCreateDto>(nameof(QualityControlBaseInfoCreateDto.Series)))
+											</label>
+											<InputText class="form-control" @bind-Value="Model.Series" />
+											<ValidationMessage For="@(() => Model.Series)" />
+										</div>
+									</div>
+ *@@* 
+									<div class="row row-margin-10">
+										<div class="form-group col-md-4">
+											<label>
+												@(ApplicationHelper.GetDisplayName<QualityControlBaseInfoCreateDto>(nameof(QualityControlBaseInfoCreateDto.ProductionDate)))
+											</label>
+											<PersianDatePicker Value="@Model.ProductionDate"
+															   ValueChanged="@((val) => Model.ProductionDate = val ?? DateTime.Now)"
+															   Required="true"
+															   ShowToolbar="false" />
+										</div>
+									
+										<div class="form-group col-md-4">
+											<label>
+												@(ApplicationHelper.GetDisplayName<QualityControlBaseInfoCreateDto>(nameof(QualityControlBaseInfoCreateDto.ExpirationDate)))
+											</label>
+											<PersianDatePicker Value="@Model.ExpirationDate"
+															   ValueChanged="@((val) => Model.ExpirationDate = val ?? DateTime.Now)"
+															   Required="true"
+															   ShowToolbar="false" />
+										</div>
+
+										<div class="form-group col-md-4">
+											<label>
+												@(ApplicationHelper.GetDisplayName<QualityControlBaseInfoCreateDto>(nameof(QualityControlBaseInfoCreateDto.Category)))
+											</label>
+											<InputSelect class="form-select" @bind-value="Model.Category">
+												<option value="">انتخاب کنید...</option>
+												@foreach (var item in Enum.GetValues<QCCategory>())
+												{
+													<option value="@item">@item.ToDisplay()</option>
+												}
+											</InputSelect>
+											<ValidationMessage For="@(() => Model.Category)" />
+										</div>
+									</div>
+ *@
+									<div class="row row-margin-10">
+										<div class="form-group @(Model.QualityControlPeriod != QualityControlPeriod.Periodic ? "col-md-6" : "col-md-4")">
+											<label>
+												@(ApplicationHelper.GetDisplayName<QualityControlBaseInfoCreateDto>(nameof(QualityControlBaseInfoCreateDto.QualityControlPeriod)))
+											</label>
+											<InputSelect class="form-select" @bind-value="Model.QualityControlPeriod">
+												<option value="">انتخاب کنید...</option>
+												@foreach (var item in Enum.GetValues<QualityControlPeriod>())
+												{
+													<option value="@item">@item.ToDisplay()</option>
+												}
+											</InputSelect>
+											<ValidationMessage For="@(() => Model.QualityControlPeriod)" />
+										</div>
+										
+										@if (Model.QualityControlPeriod == QualityControlPeriod.Periodic)
+										{
+											<div class="form-group col-md-4">
+												<label>
+													@(ApplicationHelper.GetDisplayName<QualityControlBaseInfoCreateDto>(nameof(QualityControlBaseInfoCreateDto.DayIntervalCount)))
+												</label>
+												<InputNumber class="form-control" @bind-Value="Model.DayIntervalCount" />
+												<ValidationMessage For="@(() => Model.DayIntervalCount)" />
+											</div>
+										}
+										
+										<div class="form-group @(Model.QualityControlPeriod != QualityControlPeriod.Periodic ? "col-md-6" : "col-md-4")">
+											<label>
+												@(ApplicationHelper.GetDisplayName<QualityControlBaseInfoCreateDto>(nameof(QualityControlBaseInfoCreateDto.NextQualityControlTime)))
+											</label>
+											<PersianDatePicker Value="@Model.NextQualityControlTime"
+															   ValueChanged="@((val) => Model.NextQualityControlTime = val ?? DateTime.Now)"
+															   Required="true"
+															   ShowToolbar="false" />
+											<ValidationMessage For="@(() => Model.NextQualityControlTime)" />
+										</div>
+									</div>
+@* 
+									<div class="row row-margin-10">
+										<div class="form-group">
+											<label>
+												@(ApplicationHelper.GetDisplayName<QualityControlBaseInfoCreateDto>(nameof(QualityControlBaseInfoCreateDto.StorageConditionText)))
+											</label>
+											<InputText class="form-control" @bind-Value="Model.StorageConditionText" />
+											<ValidationMessage For="@(() => Model.StorageConditionText)" />
+										</div>
+									</div>
+ *@
+									<div class="row row-margin-10">
+										<div class="col-md-6">
+											<input type="submit" class="btn btn-success btn-send pt-2 btn-block" value="ثبت اطلاعات" />
+										</div>
+										<div class="col-md-6">
+											<button type="button" @onclick="Cancel" class="btn btn-primary btn-send pt-2 btn-block">انصراف</button>
+										</div>
+									</div>
+								</div>
+							</EditForm>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
+@code {
+	[Parameter] public EventCallback<bool> OnSavedChanges { get; set; }
+	[Parameter] public int? Id { get; set; } = null;
+
+	public QualityControlBaseInfoCreateDto Model { get; set; } = new();
+	private List<KeyValuePair<int, string>> UsersKeyValue = new();
+
+	NotificationClassName ClassName = NotificationClassName.Success;
+	string MessageBody = "عملیات با موفقت انجام شد.";
+	private bool showSpinner;
+
+	protected override async Task OnParametersSetAsync()
+	{
+		if (!Id.HasValue)
+		{
+			// Model.ProductionDate = DateTime.Now;
+			// Model.ExpirationDate = DateTime.Now;
+			return;
+		}
+
+		showSpinner = true;
+
+		try
+		{
+			var apiResult = await _httpService.GetAsync<ApiResult<QualityControlBaseInfoDisplayDto>>($"api/QualityControlBaseInfo/{Id}");
+
+			if (apiResult?.IsSuccess ?? false)
+			{
+				Model = apiResult?.Data?.Adapt<QualityControlBaseInfoCreateDto>() ?? new();
+			}
+			else
+			{
+				ClassName = NotificationClassName.Error;
+				MessageBody = apiResult?.Message ?? "خطایی رخ داده است. لطفا با پشتیبانی تماس بگیرید.";
+				await ShowMessage();
+			}
+		}
+		catch (Exception)
+		{
+			ClassName = NotificationClassName.Error;
+			MessageBody = "خطا در دریافت اطلاعات گزارش آزمایش.";
+			await ShowMessage();
+		}
+		finally
+		{
+			showSpinner = false;
+		}
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		var apiResult = await _httpService
+			.GetByFilterAsync<UserSearchDto, ApiResult<List<KeyValuePair<int, string>>>>("api/User/GetByFilterForDropDown", new());
+
+		UsersKeyValue = apiResult?.Data?.ToList() ?? new();
+	}
+
+	private async Task HandleValidSubmit()
+	{
+		showSpinner = true;
+		try
+		{
+			ApiResult<QualityControlBaseInfoDisplayDto>? apiResult = null;
+
+			if (Model.Id > 0)
+				apiResult = await _httpService.PutAsync<QualityControlBaseInfoCreateDto, ApiResult<QualityControlBaseInfoDisplayDto>>("api/QualityControlBaseInfo", Model);
+			else
+				apiResult = await _httpService.PostAsync<QualityControlBaseInfoCreateDto, ApiResult<QualityControlBaseInfoDisplayDto>>("api/QualityControlBaseInfo", Model);
+
+			if (!apiResult?.IsSuccess ?? false)
+			{
+				ClassName = NotificationClassName.Error;
+				MessageBody = apiResult?.Message ?? "خطایی رخ داده است. لطفا با پشتیبانی تماس بگیرید.";
+				await ShowMessage();
+				return;
+			}
+
+			await OnSavedChanges.InvokeAsync(true);
+		}
+		catch (Exception)
+		{
+			ClassName = NotificationClassName.Error;
+			MessageBody = "خطایی رخ داده است. لطفا با پشتیبانی تماس بگیرید.";
+			await ShowMessage();
+		}
+		finally
+		{
+			showSpinner = false;
+		}
+	}
+
+	private Task Cancel() => OnSavedChanges.InvokeAsync(false);
+
+	private Task ShowMessage() => _jsRuntime.InvokeVoidAsync("showToast", ClassName.ToDisplay(), MessageBody).AsTask();
+}

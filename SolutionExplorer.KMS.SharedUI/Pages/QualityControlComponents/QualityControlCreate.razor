@@ -1,0 +1,516 @@
+﻿@using SolutionExplorer.KMS.SharedUI.Dtos.PhysicalSpecificationDtos
+@using SolutionExplorer.KMS.SharedUI.Dtos.QualityControlBaseInfoDtos
+@using SolutionExplorer.KMS.SharedUI.Dtos.QualityControlDtos
+@using System.Globalization
+@using SolutionExplorer.KMS.SharedUI.Dtos.QualityControlResultDtos
+@inject IHttpService _httpService
+@inject IJSRuntime _jsRuntime
+
+@if (showSpinner)
+{
+	<Spinner />
+}
+else if (qualityControlBaseInfo != null)
+{
+	<div class="container">
+		<div class="text-center mt-5">
+			<h1 class="page-title">
+				@FormTitle
+			</h1>
+		</div>
+
+		<div class="row">
+			<div class="col-lg-12 mx-auto">
+				<div class="card mt-2 mx-auto beauty-card">
+					<div class="card-body bg-light">
+						<div class="container">
+							<EditForm Model="@Model" OnValidSubmit="HandleValidSubmit">
+								<DataAnnotationsValidator />
+								<div class="controls">
+									<input type="hidden" @bind-value="Model.Id" />
+
+									<div class="row row-margin-10" hidden>
+										<div class="form-group col-md-12">
+											<label>
+												@(ApplicationHelper.GetDisplayName<QualityControlCreateDto>(nameof(QualityControlCreateDto.Title)))
+											</label>
+											<InputText class="form-control" @bind-Value="Model.Title" />
+											<ValidationMessage For="@(() => Model.Title)" />
+										</div>
+									</div>
+
+									<div class="row row-margin-10">
+										<div class="form-group col-md-6">
+											<label>
+												@(ApplicationHelper.GetDisplayName<QualityControlCreateDto>(nameof(QualityControlCreateDto.SampleDate)))
+											</label>
+											<PersianDatePicker Value="@Model.SampleDate"
+															   ValueChanged="@((val) => Model.SampleDate = val ?? DateTime.Now)"
+															   Required="true"
+															   ShowToolbar="false" />
+										</div>
+
+										<div class="form-group col-md-6">
+											<label>
+												@(ApplicationHelper.GetDisplayName<QualityControlCreateDto>(nameof(QualityControlCreateDto.Produces)))
+											</label>
+											<InputText class="form-control" @bind-Value="Model.Produces" />
+											<ValidationMessage For="@(() => Model.Produces)" />
+										</div>
+									</div>
+
+									<div class="row row-margin-10">
+										<div class="form-group col-md-6">
+											<label>
+												@(ApplicationHelper.GetDisplayName<QualityControlCreateDto>(nameof(QualityControlCreateDto.Manufacturer)))
+											</label>
+											<InputText class="form-control" @bind-Value="Model.Manufacturer" />
+											<ValidationMessage For="@(() => Model.Manufacturer)" />
+										</div>
+										<div class="form-group col-md-6">
+											<label>
+												@(ApplicationHelper.GetDisplayName<QualityControlCreateDto>(nameof(QualityControlCreateDto.Series)))
+											</label>
+											<InputText class="form-control" @bind-Value="Model.Series" />
+											<ValidationMessage For="@(() => Model.Series)" />
+										</div>
+									</div>
+
+									<div class="row row-margin-10">
+										<div class="form-group col-md-6">
+											<label>
+												@(ApplicationHelper.GetDisplayName<QualityControlCreateDto>(nameof(QualityControlCreateDto.ProductionDate)))
+											</label>
+											<PersianDatePicker Value="@Model.ProductionDate"
+															   ValueChanged="@((val) => Model.ProductionDate = val ?? DateTime.Now)"
+															   Required="true"
+															   ShowToolbar="false" />
+										</div>
+
+										<div class="form-group col-md-6">
+											<label>
+												@(ApplicationHelper.GetDisplayName<QualityControlCreateDto>(nameof(QualityControlCreateDto.ExpirationDate)))
+											</label>
+											<PersianDatePicker Value="@Model.ExpirationDate"
+															   ValueChanged="@((val) => Model.ExpirationDate = val ?? DateTime.Now)"
+															   Required="true"
+															   ShowToolbar="false" />
+										</div>
+									</div>
+
+									<div class="row row-margin-10">
+										<div class="form-group col-md-6">
+											<label>
+												@(ApplicationHelper.GetDisplayName<QualityControlCreateDto>(nameof(QualityControlCreateDto.StorageConditionId)))
+											</label>
+											<InputSelect class="form-select" @bind-value="Model.StorageConditionId">
+												<option value="">انتخاب کنید...</option>
+												@foreach (var storageCondition in qualityControlBaseInfo.StorageConditions)
+												{
+													if (Model.StorageConditionId > 0 && storageCondition.Id == Model.StorageConditionId)
+													{
+														<option value="@storageCondition.Id" selected="selected">@storageCondition.Title</option>
+													}
+													else if (storageCondition.IsSelected)
+													{
+														<option value="@storageCondition.Id" selected="selected">@storageCondition.Title</option>
+													}
+													else
+													{
+														<option value="@storageCondition.Id">@storageCondition.Title</option>
+													}
+												}
+											</InputSelect>
+											<ValidationMessage For="@(() => Model.StorageConditionId)" />
+										</div>
+										<div class="form-group col-md-6">
+											@if (Model.PhysicalSpecifications != null && Model.PhysicalSpecifications.Any())
+											{
+												<PhysicalSpecificationsEditor Items="Model.PhysicalSpecifications" />
+												@* @for (int i = 0; i < (Model?.PhysicalSpecifications?.Count() ?? 0); i++)
+												{
+													<p>
+														<InputCheckbox class="form-check-input" @bind-Value="Model.PhysicalSpecifications[i].IsChecked" />
+														@(Model.PhysicalSpecifications[i].Title ?? "")
+													</p>
+												} *@
+											}
+										</div>
+									</div>
+
+									<div class="row row-margin-10">
+										<div class="form-group col-md-4">
+											<label>
+												@(ApplicationHelper.GetDisplayName<QualityControlCreateDto>(nameof(QualityControlCreateDto.PerformedByUserId)))
+											</label>
+											<InputSelect class="form-select" @bind-value="Model.PerformedByUserId">
+												<option value="">انتخاب کنید...</option>
+												@foreach (var user in UsersKeyValue)
+												{
+													<option value="@user.Key">@user.Value</option>
+												}
+											</InputSelect>
+											<ValidationMessage For="@(() => Model.PerformedByUserId)" />
+										</div>
+
+										<div class="form-group col-md-4">
+											<label>
+												@(ApplicationHelper.GetDisplayName<QualityControlCreateDto>(nameof(QualityControlCreateDto.FirstConfirmerUserId)))
+											</label>
+											<InputSelect class="form-select" @bind-value="Model.FirstConfirmerUserId">
+												<option value="">انتخاب کنید...</option>
+												@foreach (var user in UsersKeyValue)
+												{
+													<option value="@user.Key">@user.Value</option>
+												}
+											</InputSelect>
+											<ValidationMessage For="@(() => Model.FirstConfirmerUserId)" />
+										</div>
+
+										<div class="form-group col-md-4">
+											<label>
+												@(ApplicationHelper.GetDisplayName<QualityControlCreateDto>(nameof(QualityControlCreateDto.SecondConfirmerUserId)))
+											</label>
+											<InputSelect class="form-select" @bind-value="Model.SecondConfirmerUserId">
+												<option value="">انتخاب کنید...</option>
+												@foreach (var user in UsersKeyValue)
+												{
+													<option value="@user.Key">@user.Value</option>
+												}
+											</InputSelect>
+											<ValidationMessage For="@(() => Model.SecondConfirmerUserId)" />
+										</div>
+									</div>
+									<div class="row row-margin-10">
+										<div class="form-group">
+											<label class="form-check-label">
+												<InputCheckbox class="form-check-input" @bind-Value="Model.IsConfirmed" />
+												@(ApplicationHelper.GetDisplayName<QualityControlCreateDto>(nameof(QualityControlCreateDto.IsConfirmed)))
+											</label>
+										</div>
+									</div>
+									@if (Model.QualityControlResults != null && Model.QualityControlResults.Any())
+									{
+										<QualityControlResultsEditor Items="Model.QualityControlResults" />
+									}
+									<div class="row row-margin-10">
+										<div class="col-md-6">
+											<input type="submit" class="btn btn-success btn-send pt-2 btn-block" value="ثبت اطلاعات" />
+										</div>
+										<div class="col-md-6">
+											<button type="button" @onclick="Cancel" class="btn btn-primary btn-send pt-2 btn-block">انصراف</button>
+										</div>
+									</div>
+								</div>
+							</EditForm>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
+@code {
+	[Parameter] public EventCallback<bool> OnSavedChanges { get; set; }
+	[Parameter] public int? Id { get; set; } = null;
+	[Parameter] public int? QualityControlBaseInfoId { get; set; } = null;
+	// [Parameter] public bool SetDefaultValue { get; set; } = false;
+
+	string FormTitle = "k;lk;";
+
+	public QualityControlCreateDto Model { get; set; } = new();
+	private List<KeyValuePair<int, string>> UsersKeyValue = new();
+	// private List<StorageConditionDisplayDto> storageConditions = new();
+	// private int? StorageConditionId = null;
+	private QualityControlBaseInfoDisplayDto qualityControlBaseInfo;
+
+	private List<QualityControlResultCreateDto> QualityControlResults = new();
+
+	NotificationClassName ClassName = NotificationClassName.Success;
+	string MessageBody = "عملیات با موفقت انجام شد.";
+	private bool showSpinner;
+
+	protected override async Task OnParametersSetAsync()
+	{
+		showSpinner = true;
+
+		try
+		{
+			if (QualityControlBaseInfoId.HasValue)
+				Model.QualityControlBaseInfoId = QualityControlBaseInfoId.Value;
+
+			await GetQCBaseInfo();
+
+			// EDIT
+			if (Id.HasValue && Id.Value > 0)
+			{
+				await LoadForEdit(Id.Value);
+				return;
+			}
+
+			// CREATE
+			var loadedFromLatest = await TryLoadLatestConfirmedAsDefault();
+
+			if (!loadedFromLatest)
+			{
+				InitForCreate();
+			}
+		}
+		finally
+		{
+			showSpinner = false;
+		}
+	}
+
+
+	private async Task<bool> TryLoadLatestConfirmedAsDefault()
+	{
+		try
+		{
+			var apiResult =
+				await _httpService.GetAsync<ApiResult<QualityControlDisplayDto>>(
+					$"api/QualityControl/GetLatestConfirmedQCData/{QualityControlBaseInfoId}");
+
+			if (!(apiResult?.IsSuccess ?? false) || apiResult.Data == null)
+				return false;
+
+			var dto = apiResult.Data;
+
+			// ❗ CREATE MODE → Id نباید ست شود
+			Model.Title = dto.Title;
+			Model.Produces = dto.Produces;
+			Model.Manufacturer = dto.Manufacturer;
+			Model.Series = dto.Series;
+			Model.StorageConditionId = dto.StorageConditionId ?? 0;
+			Model.PerformedByUserId = dto.PerformedByUserId;
+			Model.FirstConfirmerUserId = dto.FirstConfirmerUserId;
+			Model.SecondConfirmerUserId = dto.SecondConfirmerUserId;
+			Model.IsConfirmed = dto.IsConfirmed;
+
+			// تاریخ‌ها → منطقی
+			Model.SampleDate = DateTime.Now;
+			Model.ProductionDate = dto.ProductionDate;
+			Model.ExpirationDate = dto.ExpirationDate;
+
+			// لیست‌ها (clone نه reference)
+			Model.PhysicalSpecifications =
+				dto.PhysicalSpecifications?
+					.Select(x => new PhysicalSpecificationCreateDto
+					{
+						QCBaseInfoPhysicalSpecificationId = x.QCBaseInfoPhysicalSpecificationId,
+						Title = x.QCBaseInfoPhysicalSpecificationTitle,
+						IsChecked = x.IsChecked
+					})
+					.ToList()
+				?? new();
+
+			Model.QualityControlResults =
+				dto.QualityControlResults?
+					.Select(x => new QualityControlResultCreateDto
+					{
+						QCBaseInfoExpectedResultId = x.QCBaseInfoExpectedResultId,
+						ATCCControlOrganism = x.QCBaseInfoExpectedResult.ATCCControlOrganism,
+						ExpectedResult = x.QCBaseInfoExpectedResult.ExpectedResult,
+						HaloDiameter = x.QCBaseInfoExpectedResult.HaloDiameter,
+						PoliGroup_A = x.QCBaseInfoExpectedResult.PoliGroup_A,
+						PoliGroup_B = x.QCBaseInfoExpectedResult.PoliGroup_B,
+						PoliGroup_C = x.QCBaseInfoExpectedResult.PoliGroup_C,
+						PoliGroup_D = x.QCBaseInfoExpectedResult.PoliGroup_D,
+						IsConfirmed = x.IsConfirmed,
+						CorrectiveActions = x.CorrectiveActions
+					})
+					.ToList()
+				?? new();
+
+			return true;
+		}
+		catch
+		{
+			return false;
+		}
+	}
+
+
+	private async Task LoadForEdit(int id)
+	{
+		var apiResult =
+			await _httpService.GetAsync<ApiResult<QualityControlDisplayDto>>($"api/QualityControl/{id}");
+
+		if (!(apiResult?.IsSuccess ?? false) || apiResult.Data == null)
+		{
+			ClassName = NotificationClassName.Error;
+			MessageBody = apiResult?.Message ?? "خطا در دریافت اطلاعات کنترل کیفی.";
+			await ShowMessage();
+			return;
+		}
+
+		var dto = apiResult.Data.Adapt<QualityControlCreateDto>();
+
+		// ❗ مقداردهی فیلد به فیلد – نه Replace
+		Model.Id = dto.Id;
+		Model.Title = dto.Title;
+		Model.SampleDate = dto.SampleDate;
+		Model.Produces = dto.Produces;
+		Model.Manufacturer = dto.Manufacturer;
+		Model.Series = dto.Series;
+		Model.ProductionDate = dto.ProductionDate;
+		Model.ExpirationDate = dto.ExpirationDate;
+		Model.StorageConditionId = dto.StorageConditionId;
+		Model.PerformedByUserId = dto.PerformedByUserId;
+		Model.FirstConfirmerUserId = dto.FirstConfirmerUserId;
+		Model.SecondConfirmerUserId = dto.SecondConfirmerUserId;
+		Model.IsConfirmed = dto.IsConfirmed;
+
+		// لیست‌ها
+		Model.PhysicalSpecifications =
+			dto.PhysicalSpecifications ?? new();
+
+		Model.QualityControlResults =
+			dto.QualityControlResults ?? new();
+	}
+
+	private void InitForCreate()
+	{
+		Model.SampleDate = DateTime.Now;
+		Model.ExpirationDate = DateTime.Now;
+		Model.ProductionDate = DateTime.Now;
+		Model.IsConfirmed = true;
+		Model.Title = qualityControlBaseInfo.Title;
+
+		// StorageCondition پیش‌فرض
+		if (Model.StorageConditionId <= 0)
+		{
+			Model.StorageConditionId =
+				qualityControlBaseInfo.StorageConditions
+					.FirstOrDefault(x => x.IsSelected)?.Id ?? 0;
+		}
+
+		InitPhysicalSpecifications();
+		InitQualityControlResults();
+	}
+
+	private void InitPhysicalSpecifications()
+	{
+		if (Model.PhysicalSpecifications?.Any() == true)
+			return;
+
+		Model.PhysicalSpecifications =
+			qualityControlBaseInfo.QCBaseInfoPhysicalSpecifications?
+				.Select(x => new PhysicalSpecificationCreateDto
+				{
+					QCBaseInfoPhysicalSpecificationId = x.Id,
+					IsChecked = x.IsChecked,
+					Title = x.Title
+				})
+				.ToList()
+			?? new();
+	}
+
+	private void InitQualityControlResults()
+	{
+		if (Model.QualityControlResults?.Any() == true)
+			return;
+
+		Model.QualityControlResults =
+			qualityControlBaseInfo.QCBaseInfoExpectedResults?
+				.Select(x => new QualityControlResultCreateDto
+				{
+					QCBaseInfoExpectedResultId = x.Id,
+					ATCCControlOrganism = x.ATCCControlOrganism,
+					ExpectedResult = x.ExpectedResult,
+					HaloDiameter = x.HaloDiameter,
+					PoliGroup_A = x.PoliGroup_A,
+					PoliGroup_B = x.PoliGroup_B,
+					PoliGroup_C = x.PoliGroup_C,
+					PoliGroup_D = x.PoliGroup_D,
+					IsConfirmed = true,
+					CorrectiveActions = "نیاز نبود"
+				})
+				.ToList()
+			?? new();
+	}
+
+
+	private async Task GetQCBaseInfo()
+	{
+		try
+		{
+			var apiResult = await _httpService.GetAsync<ApiResult<QualityControlBaseInfoDisplayDto>>($"api/QualityControlBaseInfo/{QualityControlBaseInfoId}");
+
+			if (apiResult?.IsSuccess ?? false && apiResult.Data != null)
+			{
+				qualityControlBaseInfo = apiResult.Data;
+				if ((this.Id ?? 0) > 0)
+				{
+					FormTitle = $"ویرایش کنترل کیفی {qualityControlBaseInfo.Title ?? ""}";
+				}
+				else
+				{
+					FormTitle = $"ایجاد کنترل کیفی جدید {qualityControlBaseInfo.Title ?? ""}";
+				}
+			}
+		}
+		catch (Exception)
+		{
+			ClassName = NotificationClassName.Error;
+			MessageBody = "خطا در دریافت اطلاعات پایه کنترل کیفی.";
+			await ShowMessage();
+		}
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		var apiResult = await _httpService
+			.GetByFilterAsync<UserSearchDto, ApiResult<List<KeyValuePair<int, string>>>>("api/User/GetByFilterForDropDown", new());
+
+		UsersKeyValue = apiResult?.Data?.ToList() ?? new();
+	}
+
+	private async Task HandleValidSubmit()
+	{
+		showSpinner = true;
+		try
+		{
+			bool isSuccess;
+			string message;
+
+			if (Model.Id > 0)
+			{
+				var res = await _httpService.PutAsync<QualityControlCreateDto, ApiResult<QualityControlDisplayDto>>("api/QualityControl", Model);
+				isSuccess = res?.IsSuccess ?? false;
+				message = res?.Message ?? "خطایی رخ داده است. لطفا با پشتیبانی تماس بگیرید.";
+			}
+			else
+			{
+				var res = await _httpService.PostAsync<QualityControlCreateDto, ApiResult<QualityControlDisplayDto>>("api/QualityControl", Model);
+				isSuccess = res?.IsSuccess ?? false;
+				message = res?.Message ?? "خطایی رخ داده است. لطفا با پشتیبانی تماس بگیرید.";
+			}
+
+			if (!isSuccess)
+			{
+				ClassName = NotificationClassName.Error;
+				MessageBody = message ?? "خطایی رخ داده است. لطفا با پشتیبانی تماس بگیرید.";
+				await ShowMessage();
+				return;
+			}
+
+			await OnSavedChanges.InvokeAsync(true);
+		}
+		catch (Exception)
+		{
+			ClassName = NotificationClassName.Error;
+			MessageBody = "خطایی رخ داده است. لطفا با پشتیبانی تماس بگیرید.";
+			await ShowMessage();
+		}
+		finally
+		{
+			showSpinner = false;
+		}
+	}
+
+	private Task Cancel() => OnSavedChanges.InvokeAsync(false);
+
+	private Task ShowMessage() => _jsRuntime.InvokeVoidAsync("showToast", ClassName.ToDisplay(), MessageBody).AsTask();
+}

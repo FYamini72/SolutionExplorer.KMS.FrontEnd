@@ -257,20 +257,116 @@
                 </li>
 
                 <!-- کنترل و تضمین کیفیت -->
-                <li class="nav-item dropdown">
+                @* <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="qualityMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         کنترل و تضمین کیفیت
                     </a>
                     <ul class="dropdown-menu long-text" aria-labelledby="qualityMenu">
-                        <li><a class="dropdown-item" href="#">روزانه</a></li>
-                        <li><a class="dropdown-item" href="#">هفتگی</a></li>
-                        <li><a class="dropdown-item" href="#">ماهانه</a></li>
-                        <li><a class="dropdown-item" href="#">سه ماهه</a></li>
-                        <li><a class="dropdown-item" href="#">شش ماهه</a></li>
-                        <li><a class="dropdown-item" href="#">سالانه</a></li>
-                        <li><a class="dropdown-item" href="#">دوره‌ای</a></li>
+                        <li><a class="dropdown-item" href="/QualityControlBaseInfos/@((int)QualityControlPeriod.Daily)">روزانه</a></li>
+                        <li><a class="dropdown-item" href="/QualityControlBaseInfos/@((int)QualityControlPeriod.Monthly)">ماهانه</a></li>
+                        <li><a class="dropdown-item" href="/QualityControlBaseInfos/@((int)QualityControlPeriod.Quarterly)">سه ماهه</a></li>
+                        <li><a class="dropdown-item" href="/QualityControlBaseInfos/@((int)QualityControlPeriod.Periodic)">دوره‌ای</a></li>
+                    </ul>
+                </li> *@
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="qualityMenu" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        کنترل و تضمین کیفیت
+                    </a>
+
+                    <ul class="dropdown-menu long-text" aria-labelledby="qualityMenu">
+
+                        <!-- روزانه -->
+                        <li class="dropdown-submenu">
+                            <a class="dropdown-item dropdown-toggle" href="#">روزانه</a>
+                            <ul class="dropdown-menu long-text">
+
+                                <!-- رنگ آمیزی -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item dropdown-toggle" href="#">رنگ آمیزی</a>
+                                    <ul class="dropdown-menu long-text">
+                                        <li><a class="dropdown-item" href="/QualityControls/5">اسید-فست</a></li>
+                                        <li><a class="dropdown-item" href="/QualityControls/6">متیلن بلو</a></li>
+                                        <li><a class="dropdown-item" href="/QualityControls/7">گیمسا</a></li>
+                                        <li><a class="dropdown-item" href="#">گرم</a></li>
+                                    </ul>
+                                </li>
+
+                                <!-- کاتالاز، اکسیداز، کواگولاز -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item dropdown-toggle" href="#">کاتالاز، اکسیداز، کواگولاز</a>
+                                    <ul class="dropdown-menu long-text">
+                                        <li><a class="dropdown-item" href="#">کاتالاز</a></li>
+                                        <li><a class="dropdown-item" href="#">اکسیداز</a></li>
+                                        <li><a class="dropdown-item" href="#">کواگولاز (پلاسما)</a></li>
+                                    </ul>
+                                </li>
+
+                            </ul>
+                        </li>
+
+                        <!-- ماهانه -->
+                        <li class="dropdown-submenu">
+                            <a class="dropdown-item dropdown-toggle" href="#">ماهانه</a>
+                            <ul class="dropdown-menu long-text">
+
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item dropdown-toggle" href="#">دیسک های تشخیصی</a>
+                                    <ul class="dropdown-menu long-text">
+                                        <li><a class="dropdown-item" href="#">اپتوچین</a></li>
+                                        <li><a class="dropdown-item" href="#">نووبیوسین</a></li>
+                                        <li><a class="dropdown-item" href="#">باسیتراسین</a></li>
+                                        <li><a class="dropdown-item" href="#">ONPG</a></li>
+                                    </ul>
+                                </li>
+
+                            </ul>
+                        </li>
+
+                        <!-- سه ماهه -->
+                        <li class="dropdown-submenu">
+                            <a class="dropdown-item dropdown-toggle" href="#">سه ماهه</a>
+                            <ul class="dropdown-menu long-text">
+
+                                <!-- معرف -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item dropdown-toggle" href="#">معرف</a>
+                                    <ul class="dropdown-menu long-text">
+                                        <li><a class="dropdown-item" href="#">دئوکسی کولات (صفرا)</a></li>
+                                        <li><a class="dropdown-item" href="#">کلرید فریک (فنیل آلانین)</a></li>
+                                        <li><a class="dropdown-item" href="#">اندول (کواکس)</a></li>
+                                        <li><a class="dropdown-item" href="#">متیل رد</a></li>
+                                        <li><a class="dropdown-item" href="#">معرف VP</a></li>
+                                        <li><a class="dropdown-item" href="#">معرف PYR</a></li>
+                                        <li><a class="dropdown-item" href="#">نین هیدرین (هیپورات)</a></li>
+                                        <li><a class="dropdown-item" href="#">احیای نیترات</a></li>
+                                    </ul>
+                                </li>
+
+                                <!-- آنتی سرم -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item dropdown-toggle" href="#">آنتی سرم</a>
+                                    <ul class="dropdown-menu long-text">
+                                        <li><a class="dropdown-item" href="#">شیگلا</a></li>
+                                        <li><a class="dropdown-item" href="#">سالمونلا</a></li>
+                                        <li><a class="dropdown-item" href="#">ایکلای</a></li>
+                                    </ul>
+                                </li>
+
+                            </ul>
+                        </li>
+
+                        <!-- دوره ای (غیرفعال) -->
+                        <li>
+                            <a class="dropdown-item disabled" href="#" tabindex="-1" aria-disabled="true">
+                                دوره ای
+                            </a>
+                        </li>
+
                     </ul>
                 </li>
+
 
                 <!-- عدم انطباق -->
                 <li class="nav-item dropdown">
