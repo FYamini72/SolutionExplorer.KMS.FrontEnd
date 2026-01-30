@@ -6,7 +6,8 @@ namespace SolutionExplorer.KMS.SharedUI.Utilities
 {
     public class ApplicationHelper
     {
-        public static string GetApiBasePath = "https://localhost:7180";
+        public static string GetApiBasePath = "http://45.149.77.107:8586";
+        //public static string GetApiBasePath = "https://localhost:7180";
         public static string GetAttachmentFileApiPath(int fileId)
         {
             return Path.Combine(GetApiBasePath, $"api/AttachmentFile/DownloadAttachment/{fileId}");

@@ -1,0 +1,38 @@
+﻿@using SolutionExplorer.KMS.SharedUI.Dtos.PhysicalSpecificationDtos
+@if (Items?.Any() == true)
+{
+    <div class="table-responsive mt-4">
+        <table class="table">
+        @* <table class="table table-bordered table-striped"> 
+            <thead>
+                <tr>
+                    <th>عنوان مشخصه فیزیکی</th>
+                    <th>وضعیت</th>
+                </tr>
+            </thead>*@
+            <tbody>
+                @foreach (var item in Items)
+                {
+                    <tr @key="item.QCBaseInfoPhysicalSpecificationId">
+                        @* <td>@item.Title</td> *@
+                        <td>
+                            <div class="form-check">
+                                <InputCheckbox class="form-check-input"
+                                               @bind-Value="item.IsChecked" />
+                                <label class="form-check-label">
+                                    @item.Title
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+
+@code {
+    [Parameter, EditorRequired]
+    public List<PhysicalSpecificationCreateDto> Items { get; set; } = new();
+}

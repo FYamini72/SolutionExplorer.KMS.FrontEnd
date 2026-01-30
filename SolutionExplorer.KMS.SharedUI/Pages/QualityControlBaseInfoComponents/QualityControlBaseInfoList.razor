@@ -1,0 +1,333 @@
+﻿@page "/QualityControlBaseInfos/{QualityControlPeriodId:int?}"
+@using SolutionExplorer.KMS.SharedUI.Dtos.QualityControlBaseInfoDtos
+@using SolutionExplorer.KMS.SharedUI.Pages.QualityControlComponents
+@inject IHttpService httpHelper
+@inject IJSRuntime JSRuntime
+@inject NavigationManager Navigation
+@inject ILocalStorageService localStorageService
+@attribute [Authorize]
+
+@if (formState is FormState.Edit or FormState.Create)
+{
+	<QualityControlBaseInfoCreate OnSavedChanges="HandleCreateCompleted" Id="@id" />
+}
+else
+{
+	<div class="mb-3 d-flex flex-wrap gap-2">
+		<button class="btn btn-outline-info btn-sm" type="button" @onclick="OnSearch">
+			<span aria-hidden="true" style="vertical-align: sub;" class="bi bi-arrow-clockwise"></span>
+		</button>
+
+		<button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#searchFormCollapse" aria-expanded="false" aria-controls="searchFormCollapse">
+			<i class="bi bi-search"></i>
+			فرم جستجو
+		</button>
+
+		@if (!QualityControlPeriodId.HasValue)
+		{
+			<button class="btn btn-success btn-sm" @onclick="CreateNewItem">
+				<i class="bi bi-plus-circle"></i>
+				درج رکورد جدید
+			</button>
+		}
+	</div>
+
+	<div class="collapse" id="searchFormCollapse">
+		<div class="card card-body mb-4 shadow-sm">
+			<form class="row g-3" @onreset="ClearForm">
+
+				<div class="col-md-4 col-sm-6">
+					<label class="form-label fw-semibold">
+						@(ApplicationHelper.GetDisplayName<QualityControlBaseInfoSearchDto>(nameof(QualityControlBaseInfoSearchDto.Title)))
+					</label>
+					<input type="text" class="form-control" @bind="searchModel.Title" />
+				</div>
+@* 
+				<div class="col-md-4 col-sm-6">
+					<label class="form-label fw-semibold">
+						@(ApplicationHelper.GetDisplayName<QualityControlBaseInfoSearchDto>(nameof(QualityControlBaseInfoSearchDto.Manufacturer)))
+					</label>
+					<input type="text" class="form-control" @bind="searchModel.Manufacturer" />
+				</div>
+
+				<div class="col-md-4 col-sm-6">
+					<label class="form-label fw-semibold">
+						@(ApplicationHelper.GetDisplayName<QualityControlBaseInfoSearchDto>(nameof(QualityControlBaseInfoSearchDto.Series)))
+					</label>
+					<input type="text" class="form-control" @bind="searchModel.Series" />
+				</div>
+
+				<div class="col-md-4 col-sm-6">
+					<label class="form-label fw-semibold">
+						@(ApplicationHelper.GetDisplayName<QualityControlBaseInfoSearchDto>(nameof(QualityControlBaseInfoSearchDto.ProductionDate)))
+					</label>
+					<PersianDatePicker Value="@searchModel.ProductionDate"
+									   ValueChanged="@((val) => searchModel.ProductionDate = val)"
+									   Required="false"
+									   ShowToolbar="false" />
+				</div>
+
+				<div class="col-md-4 col-sm-6">
+					<label class="form-label fw-semibold">
+						@(ApplicationHelper.GetDisplayName<QualityControlBaseInfoSearchDto>(nameof(QualityControlBaseInfoSearchDto.ExpirationDate)))
+					</label>
+					<PersianDatePicker Value="@searchModel.ExpirationDate"
+									   ValueChanged="@((val) => searchModel.ExpirationDate = val)"
+									   Required="false"
+									   ShowToolbar="false" />
+				</div>
+ *@
+				<div class="col-md-4 col-sm-6">
+					<label class="form-label fw-semibold">
+						@(ApplicationHelper.GetDisplayName<QualityControlBaseInfoSearchDto>(nameof(QualityControlBaseInfoSearchDto.QualityControlPeriod)))
+					</label>
+					<select class="form-select" @bind="searchModel.QualityControlPeriod">
+						<option value="">انتخاب کنید...</option>
+						@foreach (var item in Enum.GetValues<QualityControlPeriod>())
+						{
+							<option value="@item">@item.ToDisplay()</option>
+						}
+					</select>
+				</div>
+
+				<div class="col-md-4 col-sm-6">
+					<label class="form-label fw-semibold">
+						@(ApplicationHelper.GetDisplayName<QualityControlBaseInfoSearchDto>(nameof(QualityControlBaseInfoSearchDto.Category)))
+					</label>
+					<select class="form-select" @bind="searchModel.Category">
+						<option value="">انتخاب کنید...</option>
+						@foreach (var item in Enum.GetValues<QCCategory>())
+						{
+							<option value="@item">@item.ToDisplay()</option>
+						}
+					</select>
+				</div>
+
+				<div class="col-md-4 col-sm-6" style="display: @(searchModel.QualityControlPeriod == QualityControlPeriod.Periodic ? "inline-block" : "none")">
+					<label class="form-label fw-semibold">
+						@(ApplicationHelper.GetDisplayName<QualityControlBaseInfoSearchDto>(nameof(QualityControlBaseInfoSearchDto.DayIntervalCount)))
+					</label>
+					<input type="text" class="form-control" @bind="searchModel.DayIntervalCount" />
+				</div>
+
+				<div class="col-md-4 col-sm-6">
+					<label class="form-label fw-semibold">
+						@(ApplicationHelper.GetDisplayName<QualityControlBaseInfoSearchDto>(nameof(QualityControlBaseInfoSearchDto.FromNextQualityControlTime)))
+					</label>
+					<PersianDatePicker Value="@searchModel.FromNextQualityControlTime"
+									   ValueChanged="@((val) => searchModel.FromNextQualityControlTime = val)"
+									   Required="false"
+									   ShowToolbar="false" />
+				</div>
+
+				<div class="col-md-4 col-sm-6">
+					<label class="form-label fw-semibold">
+						@(ApplicationHelper.GetDisplayName<QualityControlBaseInfoSearchDto>(nameof(QualityControlBaseInfoSearchDto.ToNextQualityControlTime)))
+					</label>
+					<PersianDatePicker Value="@searchModel.ToNextQualityControlTime"
+									   ValueChanged="@((val) => searchModel.ToNextQualityControlTime = val)"
+									   Required="false"
+									   ShowToolbar="false" />
+				</div>
+
+				<div class="col-12 text-end mt-3">
+					<button type="reset" class="btn btn-outline-secondary px-4 me-2">
+						<i class="bi bi-trash"></i> پاک کردن
+					</button>
+					<button type="button" class="btn btn-primary px-4" @onclick="OnSearch">
+						<i class="bi bi-search"></i> جستجو
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	<MudTable ServerData="ServerReload" Dense="true" Striped="true" Hover="true" @ref="table">
+		<HeaderContent>
+			<MudTh>@(ApplicationHelper.GetDisplayName<QualityControlBaseInfoDisplayDto>(nameof(QualityControlBaseInfoDisplayDto.Title)))</MudTh>
+			@* <MudTh>@(ApplicationHelper.GetDisplayName<QualityControlBaseInfoDisplayDto>(nameof(QualityControlBaseInfoDisplayDto.Manufacturer)))</MudTh>
+			<MudTh>@(ApplicationHelper.GetDisplayName<QualityControlBaseInfoDisplayDto>(nameof(QualityControlBaseInfoDisplayDto.Series)))</MudTh>
+			<MudTh>@(ApplicationHelper.GetDisplayName<QualityControlBaseInfoDisplayDto>(nameof(QualityControlBaseInfoDisplayDto.ProductionDate)))</MudTh>
+			<MudTh>@(ApplicationHelper.GetDisplayName<QualityControlBaseInfoDisplayDto>(nameof(QualityControlBaseInfoDisplayDto.ExpirationDate)))</MudTh> *@
+			<MudTh>@(ApplicationHelper.GetDisplayName<QualityControlBaseInfoDisplayDto>(nameof(QualityControlBaseInfoDisplayDto.DayIntervalCount)))</MudTh>
+			<MudTh>@(ApplicationHelper.GetDisplayName<QualityControlBaseInfoDisplayDto>(nameof(QualityControlBaseInfoDisplayDto.Category)))</MudTh>
+			<MudTh>@(ApplicationHelper.GetDisplayName<QualityControlBaseInfoDisplayDto>(nameof(QualityControlBaseInfoDisplayDto.NextQualityControlTime)))</MudTh>
+			<MudTh>عملیات</MudTh>
+		</HeaderContent>
+		<RowTemplate>
+			<MudTd DataLabel="@(nameof(QualityControlBaseInfoDisplayDto.Title))">@context.Title</MudTd>
+			@* <MudTd DataLabel="@(nameof(QualityControlBaseInfoDisplayDto.Manufacturer))">@context.Manufacturer</MudTd>
+			<MudTd DataLabel="@(nameof(QualityControlBaseInfoDisplayDto.Series))">@context.Series</MudTd>
+			<MudTd DataLabel="@(nameof(QualityControlBaseInfoDisplayDto.ProductionDate))">@context.ProductionDate.ToString("yyyy/MM/dd")</MudTd>
+			<MudTd DataLabel="@(nameof(QualityControlBaseInfoDisplayDto.ExpirationDate))">@context.ExpirationDate.ToString("yyyy/MM/dd")</MudTd> *@
+			<MudTd DataLabel="@(nameof(QualityControlBaseInfoDisplayDto.DayIntervalCount))">@(context.DayIntervalCount.HasValue ? $"هر {context.DayIntervalCount.Value} روز" : context.QualityControlPeriod.ToDisplay())</MudTd>
+			<MudTd DataLabel="@(nameof(QualityControlBaseInfoDisplayDto.Category))">@context.Category.ToDisplay()</MudTd>
+			<MudTd DataLabel="@(nameof(QualityControlBaseInfoDisplayDto.NextQualityControlTime))">@context.NextQualityControlTime.ToString("yyyy/MM/dd")</MudTd>
+			<MudTd DataLabel="@(nameof(QualityControlBaseInfoDisplayDto.Id))" Style="width: 200px;">
+				<MudIconButton Icon="@Icons.Material.Filled.Edit" hidden="@(QualityControlPeriodId.HasValue)" Color="Color.Primary" Size="Size.Medium" OnClick="@(() => EditItem(context.Id))"></MudIconButton>
+				<MudIconButton Icon="@Icons.Material.Filled.Delete" hidden="@(QualityControlPeriodId.HasValue)" Color="Color.Error" Size="Size.Medium" OnClick="@(() => DeleteItem(context.Id))"></MudIconButton>
+				<MudIconButton Icon="@Icons.Material.Filled.Info" title="تاریخچه کنترل کیفی" Color="Color.Info" Size="Size.Medium" OnClick="@(() => InfoItem(context.Id))"></MudIconButton>
+				@* <MudIconButton Icon="@Icons.Material.Filled.Dataset" title="تنظیم اطلاعات پیشفرض" Color="Color.Secondary" Size="Size.Medium" OnClick="@(() => SetDefaultValue(context.Id))"></MudIconButton>
+				@if (context.NextQualityControlTime.Date == DateTime.Now.Date && QualityControlPeriodId.HasValue)
+				{
+					<button class="btn btn-success btn-sm" @onclick="@(() => DoQualityControl(context.Id))">
+						<i class="bi bi-check-circle"></i>
+						انجام کنترل کیفی
+					</button>
+				} *@
+			</MudTd>
+		</RowTemplate>
+		<NoRecordsContent>
+			<MudText>موردی یافت نشد.</MudText>
+		</NoRecordsContent>
+		<LoadingContent>
+			<MudText>Loading...</MudText>
+		</LoadingContent>
+		<PagerContent>
+			<MudTablePager />
+		</PagerContent>
+	</MudTable>
+}
+
+@code {
+	enum FormState { None, Create, Edit/* , SetDefaultValue, DoQualityControl */ }
+	private FormState formState = FormState.None;
+	private int? id = null;
+
+	[Parameter]
+	public int? QualityControlPeriodId { get; set; }
+
+	private QualityControlBaseInfoSearchDto searchModel = new();
+	private MudTable<QualityControlBaseInfoDisplayDto> table;
+
+	NotificationClassName ClassName = NotificationClassName.Success;
+	string MessageBody = "عملیات با موفقت انجام شد.";
+
+	// protected override async Task OnParametersSetAsync()
+	// {
+	// 	if (QualityControlPeriodId.HasValue)
+	// 		searchModel.QualityControlPeriod = (QualityControlPeriod)QualityControlPeriodId;
+	// 	else if ((await localStorageService.ContainsKeyAsync("QualityControlPeriod")))
+	// 		searchModel.QualityControlPeriod = (QualityControlPeriod)((await localStorageService.GetItemAsync<int>("QualityControlPeriod")));
+	// 	else
+	// 		searchModel.QualityControlPeriod = null;
+
+	// 	table?.ReloadServerData();
+	// 	return base.OnParametersSetAsync();
+	// }
+
+	protected override async Task OnParametersSetAsync()
+	{
+		if (QualityControlPeriodId.HasValue)
+			searchModel.QualityControlPeriod = (QualityControlPeriod)QualityControlPeriodId;
+		else if (await localStorageService.ContainsKeyAsync("QualityControlPeriod"))
+		{
+			searchModel.QualityControlPeriod = (QualityControlPeriod)(await localStorageService.GetItemAsync<int>("QualityControlPeriod"));
+			await localStorageService.RemoveItemAsync("QualityControlPeriod");
+		}
+		else
+			searchModel.QualityControlPeriod = null;
+
+		table?.ReloadServerData();
+
+		await base.OnParametersSetAsync();
+	}
+
+
+	private async Task<TableData<QualityControlBaseInfoDisplayDto>> ServerReload(TableState state, CancellationToken token)
+	{
+		searchModel.CalculateTakeAndSkip(state.Page, state.PageSize);
+		var apiResult = await httpHelper
+			.GetByFilterAsync<QualityControlBaseInfoSearchDto, ApiResult<BaseGridDto<QualityControlBaseInfoDisplayDto>>>("api/QualityControlBaseInfo/GetByFilter", searchModel);
+
+		var items = apiResult?.Data?.Data ?? Enumerable.Empty<QualityControlBaseInfoDisplayDto>();
+		var total = apiResult?.Data?.TotalCount ?? 0;
+		return new TableData<QualityControlBaseInfoDisplayDto> { TotalItems = total, Items = items };
+	}
+
+	private void OnSearch()
+	{
+		if (searchModel.QualityControlPeriod != QualityControlPeriod.Periodic)
+		{
+			searchModel.DayIntervalCount = null;
+		}
+
+		table?.ReloadServerData();
+	}
+
+	private void ClearForm()
+	{
+		searchModel = new QualityControlBaseInfoSearchDto();
+		OnSearch();
+	}
+
+	private void CreateNewItem() => formState = FormState.Create;
+
+	// private void SetDefaultValue(int itemId)
+	// {
+	// 	this.id = itemId;
+	// 	formState = FormState.SetDefaultValue;
+	// }
+
+	private void EditItem(int itemId)
+	{
+		this.id = itemId;
+		formState = FormState.Edit;
+	}
+
+	private void InfoItem(int itemId)
+	{
+		this.id = itemId;
+		if (searchModel.QualityControlPeriod.HasValue)
+		{
+			localStorageService.SetItemAsync<int>("QualityControlPeriod", (int)searchModel.QualityControlPeriod.Value);
+		}
+		Navigation.NavigateTo($"/QualityControls/{id}", true);
+	}
+
+	// private void DoQualityControl(int itemId)
+	// {
+	// 	this.id = itemId;
+	// 	formState = FormState.DoQualityControl;
+	// }
+
+	private async Task DeleteItem(int itemId)
+	{
+		this.id = itemId;
+		formState = FormState.None;
+
+		var confirmResult = await JSRuntime.InvokeAsync<bool>("confirmDelete", "آیا از حذف این آیتم اطمینان دارید؟");
+		if (confirmResult)
+		{
+			var apiResult = await httpHelper.DeleteAsync<ApiResult>($"api/QualityControlBaseInfo?id={this.id}");
+
+			if (apiResult?.IsSuccess ?? false)
+			{
+				ClassName = NotificationClassName.Success;
+				MessageBody = "عملیات با موفقت انجام شد.";
+			}
+			else
+			{
+				ClassName = NotificationClassName.Error;
+				MessageBody = apiResult?.Message ?? "خطایی رخ داده است. لطفا با پشتیبانی تماس بگیرید.";
+			}
+
+			await ShowMessage();
+			table?.ReloadServerData();
+		}
+	}
+
+	private async Task HandleCreateCompleted(bool saved)
+	{
+		formState = FormState.None;
+		this.id = null;
+		if (!saved) return;
+
+		ClassName = NotificationClassName.Success;
+		MessageBody = "عملیات با موفقت انجام شد.";
+		await ShowMessage();
+		table?.ReloadServerData();
+	}
+
+	private Task ShowMessage() => JSRuntime.InvokeVoidAsync("showToast", ClassName.ToDisplay(), MessageBody).AsTask();
+}
