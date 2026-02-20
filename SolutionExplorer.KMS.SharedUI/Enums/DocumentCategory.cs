@@ -8,6 +8,12 @@ namespace SolutionExplorer.KMS.SharedUI.Enums
         /// اطلاعات پایه آزمايشگاه ميکروب شناسی
         /// </summary>
         [Display(Name = "اطلاعات پایه آزمايشگاه ميکروب شناسی")]
-        BaseInfoMicrobiologyLab
+        BaseInfoMicrobiologyLab,
+
+        /// <summary>
+        /// مدیریت کارکنان
+        /// </summary>
+        [Display(Name = "مدیریت کارکنان")]
+        UserManagements
     }
 }

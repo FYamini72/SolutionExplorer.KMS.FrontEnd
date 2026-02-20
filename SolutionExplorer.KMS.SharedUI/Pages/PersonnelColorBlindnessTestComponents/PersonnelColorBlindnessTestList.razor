@@ -1,0 +1,128 @@
+﻿@page "/personnel-color-blindness-test-list"
+@using SolutionExplorer.KMS.SharedUI.Dtos.PersonnelColorBlindnessTestDtos
+@using SolutionExplorer.KMS.SharedUI.Dtos.PersonnelDtos
+@attribute [Authorize]
+
+@if (FormState == FormState.Create || FormState == FormState.Edit)
+{
+	<PersonnelColorBlindnessTestCreate Id="SelectedId" OnSavedChanges="HandleCompleted" />
+}
+else
+{
+	<div class="mb-3 d-flex flex-wrap gap-2">
+		<button class="btn btn-outline-info btn-sm" @onclick="OnSearch">
+			<i class="bi bi-arrow-clockwise"></i>
+		</button>
+
+		<button class="btn btn-outline-primary btn-sm"
+				data-bs-toggle="collapse"
+				data-bs-target="#searchCollapse">
+			<i class="bi bi-search"></i> فرم جستجو
+		</button>
+
+		<button class="btn btn-success btn-sm" @onclick="CreateNew">
+			<i class="bi bi-plus-circle"></i> درج رکورد جدید
+		</button>
+	</div>
+
+	<div class="collapse" id="searchCollapse">
+		<div class="card card-body mb-4 shadow-sm">
+			<form class="row g-3" @onreset="ClearForm">
+
+				<!-- FirstConfirmer -->
+				<div class="col-md-4 col-sm-6">
+					<label class="form-label fw-semibold">
+						@(ApplicationHelper.GetDisplayName<PersonnelColorBlindnessTestSearchDto>(nameof(PersonnelColorBlindnessTestSearchDto.PersonnelId)))
+					</label>
+					<select class="form-select" @bind="SearchModel.PersonnelId">
+						<option value="">انتخاب کنید...</option>
+						@foreach (var user in UsersKeyValue)
+						{
+							<option value="@user.Key">@user.Value</option>
+						}
+					</select>
+				</div>
+
+				<div class="col-md-4 col-sm-6">
+					<label class="form-label fw-semibold">
+						@(ApplicationHelper.GetDisplayName<PersonnelColorBlindnessTestSearchDto>(nameof(PersonnelColorBlindnessTestSearchDto.IsConfirmed)))
+					</label>
+					<InputSelect class="form-select" @bind-Value="SearchModel.IsConfirmed">
+						<option value="0">انتخاب کنید...</option>
+						<option value="1">بحرانی</option>
+						<option value="2">عادی</option>
+					</InputSelect>
+				</div>
+
+				<div class="col-md-4 col-sm-6">
+					<label class="form-label fw-semibold">
+						@(ApplicationHelper.GetDisplayName<PersonnelColorBlindnessTestSearchDto>(nameof(PersonnelColorBlindnessTestSearchDto.TestDate)))
+					</label>
+					<PersianDatePicker Value="@SearchModel.TestDate"
+									   ValueChanged="@((val) => SearchModel.TestDate = val)"
+									   Required="false"
+									   ShowToolbar="false" />
+				</div>
+
+				<!-- Actions -->
+				<div class="col-12 text-end mt-3">
+					<button type="reset" class="btn btn-outline-secondary px-4 me-2">
+						<i class="bi bi-trash"></i> پاک کردن
+					</button>
+					<button type="button" class="btn btn-primary px-4" @onclick="OnSearch">
+						<i class="bi bi-search"></i> جستجو
+					</button>
+				</div>
+
+			</form>
+		</div>
+	</div>
+
+
+	<MudTable ServerData="LoadServerData" Hover Dense Striped @ref="Table">
+		<HeaderContent>
+			<MudTh>@(ApplicationHelper.GetDisplayName<PersonnelColorBlindnessTestDisplayDto>(nameof(PersonnelColorBlindnessTestDisplayDto.PersonnelNumber)))</MudTh>
+			<MudTh>@(ApplicationHelper.GetDisplayName<PersonnelColorBlindnessTestDisplayDto>(nameof(PersonnelColorBlindnessTestDisplayDto.Prefix)))</MudTh>
+			<MudTh>@(ApplicationHelper.GetDisplayName<PersonnelColorBlindnessTestDisplayDto>(nameof(PersonnelColorBlindnessTestDisplayDto.PersonnelFullName)))</MudTh>
+			<MudTh>@(ApplicationHelper.GetDisplayName<PersonnelColorBlindnessTestDisplayDto>(nameof(PersonnelColorBlindnessTestDisplayDto.EmploymentDate)))</MudTh>
+			<MudTh>@(ApplicationHelper.GetDisplayName<PersonnelColorBlindnessTestDisplayDto>(nameof(PersonnelColorBlindnessTestDisplayDto.TestDate)))</MudTh>
+			<MudTh>@(ApplicationHelper.GetDisplayName<PersonnelColorBlindnessTestDisplayDto>(nameof(PersonnelColorBlindnessTestDisplayDto.RedColorDetection)))</MudTh>
+			<MudTh>@(ApplicationHelper.GetDisplayName<PersonnelColorBlindnessTestDisplayDto>(nameof(PersonnelColorBlindnessTestDisplayDto.BlueColorDetection)))</MudTh>
+			<MudTh>@(ApplicationHelper.GetDisplayName<PersonnelColorBlindnessTestDisplayDto>(nameof(PersonnelColorBlindnessTestDisplayDto.YellowColorDetection)))</MudTh>
+			<MudTh>@(ApplicationHelper.GetDisplayName<PersonnelColorBlindnessTestDisplayDto>(nameof(PersonnelColorBlindnessTestDisplayDto.IsConfirmed)))</MudTh>
+			<MudTh>@(ApplicationHelper.GetDisplayName<PersonnelColorBlindnessTestDisplayDto>(nameof(PersonnelColorBlindnessTestDisplayDto.FirstConfirmerUserFullName)))</MudTh>
+			<MudTh>@(ApplicationHelper.GetDisplayName<PersonnelColorBlindnessTestDisplayDto>(nameof(PersonnelColorBlindnessTestDisplayDto.SecondConfirmerUserFullName)))</MudTh>
+			<MudTh>عملیات</MudTh>
+		</HeaderContent>
+
+		<RowTemplate>
+			<MudTd>@context.PersonnelNumber</MudTd>
+			<MudTd>@context.Prefix.ToDisplay()</MudTd>
+			<MudTd>@context.PersonnelFullName</MudTd>
+			<MudTd>@context.EmploymentDate</MudTd>
+			<MudTd>@context.TestDate.ToString("yyyy/MM/dd")</MudTd>
+			<MudTd>@(context.RedColorDetection ? "بله" : "خیر")</MudTd>
+			<MudTd>@(context.BlueColorDetection ? "بله" : "خیر")</MudTd>
+			<MudTd>@(context.YellowColorDetection ? "بله" : "خیر")</MudTd>
+			<MudTd>@(context.IsConfirmed ? "بله" : "خیر")</MudTd>
+			<MudTd>@context.FirstConfirmerUserFullName</MudTd>
+			<MudTd>@context.SecondConfirmerUserFullName</MudTd>
+
+			<MudTd>
+				<MudIconButton Icon="@Icons.Material.Filled.Edit"
+							   Color="Color.Primary"
+							   Size="Size.Medium"
+							   OnClick="@(() => Edit(context.Id))" />
+				<MudIconButton Icon="@Icons.Material.Filled.Delete"
+							   Color="Color.Error"
+							   Size="Size.Medium"
+							   OnClick="@(() => DeleteItem(context.Id))">
+				</MudIconButton>
+			</MudTd>
+		</RowTemplate>
+
+		<PagerContent>
+			<MudTablePager />
+		</PagerContent>
+	</MudTable>
+}

@@ -33,8 +33,8 @@
         {
             spinner.ShowLoadingSpinner();
             // وب سرویس رو صدا بزن
-            var response = await Http.GetAsync($"http://45.149.77.107:8586/api/Document/generate-encrypted-pdf/{DocumentId}");
-			// var response = await Http.GetAsync($"https://localhost:7180/api/Document/generate-encrypted-pdf/{DocumentId}");
+            //var response = await Http.GetAsync($"http://45.149.77.107:8586/api/Document/generate-encrypted-pdf/{DocumentId}");
+			 var response = await Http.GetAsync($"https://localhost:7180/api/Document/generate-encrypted-pdf/{DocumentId}");
             if (!response.IsSuccessStatusCode)
             {
                 Console.WriteLine($"EncryptedPdfViewer: request failed: {response.StatusCode}");
