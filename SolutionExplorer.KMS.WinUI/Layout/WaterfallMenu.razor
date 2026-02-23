@@ -44,11 +44,11 @@
                         کارکنان
                     </a>
                     <ul class="dropdown-menu long-text" aria-labelledby="userMenuNav">
-                        <li><a class="dropdown-item" href="#">شناسنامه و چارت سازمانی</a></li>
-                        <li><a class="dropdown-item" href="#">صلاحیت و وظایف</a></li>
-                        <li><a class="dropdown-item" href="#">ایمنی و حفاظت</a></li>
-                        <li><a class="dropdown-item" href="#">تست کوررنگی</a></li>
-                        <li><a class="dropdown-item" href="#">آموزش</a></li>
+                        <li><a class="dropdown-item" href="/personnel">شناسنامه و چارت سازمانی</a></li>
+                        <li><a class="dropdown-item" href="/Identifiers/@IdentifierType.CompetenceAndDuties">صلاحیت و وظایف</a></li>
+                        <li><a class="dropdown-item" href="/Identifiers/@IdentifierType.SafetyAndProtection">ایمنی و حفاظت</a></li>
+                        <li><a class="dropdown-item" href="/personnel-color-blindness-test-list">تست کوررنگی</a></li>
+                        <li><a class="dropdown-item" href="/personnel-trainig-courses">آموزش</a></li>
                     </ul>
                 </li>
 
@@ -256,19 +256,6 @@
                     </ul>
                 </li>
 
-                <!-- کنترل و تضمین کیفیت -->
-                @* <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="qualityMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        کنترل و تضمین کیفیت
-                    </a>
-                    <ul class="dropdown-menu long-text" aria-labelledby="qualityMenu">
-                        <li><a class="dropdown-item" href="/QualityControlBaseInfos/@((int)QualityControlPeriod.Daily)">روزانه</a></li>
-                        <li><a class="dropdown-item" href="/QualityControlBaseInfos/@((int)QualityControlPeriod.Monthly)">ماهانه</a></li>
-                        <li><a class="dropdown-item" href="/QualityControlBaseInfos/@((int)QualityControlPeriod.Quarterly)">سه ماهه</a></li>
-                        <li><a class="dropdown-item" href="/QualityControlBaseInfos/@((int)QualityControlPeriod.Periodic)">دوره‌ای</a></li>
-                    </ul>
-                </li> *@
-
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="qualityMenu" role="button"
                        data-bs-toggle="dropdown" aria-expanded="false">
@@ -289,7 +276,7 @@
                                         <li><a class="dropdown-item" href="/QualityControls/5">اسید-فست</a></li>
                                         <li><a class="dropdown-item" href="/QualityControls/6">متیلن بلو</a></li>
                                         <li><a class="dropdown-item" href="/QualityControls/7">گیمسا</a></li>
-                                        <li><a class="dropdown-item" href="#">گرم</a></li>
+                                        <li><a class="dropdown-item" href="/QualityControls/8">گرم</a></li>
                                     </ul>
                                 </li>
 
@@ -297,9 +284,9 @@
                                 <li class="dropdown-submenu">
                                     <a class="dropdown-item dropdown-toggle" href="#">کاتالاز، اکسیداز، کواگولاز</a>
                                     <ul class="dropdown-menu long-text">
-                                        <li><a class="dropdown-item" href="#">کاتالاز</a></li>
-                                        <li><a class="dropdown-item" href="#">اکسیداز</a></li>
-                                        <li><a class="dropdown-item" href="#">کواگولاز (پلاسما)</a></li>
+                                        <li><a class="dropdown-item" href="/QualityControls/9">کاتالاز</a></li>
+                                        <li><a class="dropdown-item" href="/QualityControls/10">اکسیداز</a></li>
+                                        <li><a class="dropdown-item" href="/QualityControls/11">کواگولاز (پلاسما)</a></li>
                                     </ul>
                                 </li>
 
@@ -314,10 +301,10 @@
                                 <li class="dropdown-submenu">
                                     <a class="dropdown-item dropdown-toggle" href="#">دیسک های تشخیصی</a>
                                     <ul class="dropdown-menu long-text">
-                                        <li><a class="dropdown-item" href="#">اپتوچین</a></li>
-                                        <li><a class="dropdown-item" href="#">نووبیوسین</a></li>
-                                        <li><a class="dropdown-item" href="#">باسیتراسین</a></li>
-                                        <li><a class="dropdown-item" href="#">ONPG</a></li>
+                                        <li><a class="dropdown-item" href="/QualityControls/12">اپتوچین</a></li>
+                                        <li><a class="dropdown-item" href="/QualityControls/13">نووبیوسین</a></li>
+                                        <li><a class="dropdown-item" href="/QualityControls/14">باسیتراسین</a></li>
+                                        <li><a class="dropdown-item" href="/QualityControls/15">ONPG</a></li>
                                     </ul>
                                 </li>
 
@@ -333,14 +320,14 @@
                                 <li class="dropdown-submenu">
                                     <a class="dropdown-item dropdown-toggle" href="#">معرف</a>
                                     <ul class="dropdown-menu long-text">
-                                        <li><a class="dropdown-item" href="#">دئوکسی کولات (صفرا)</a></li>
-                                        <li><a class="dropdown-item" href="#">کلرید فریک (فنیل آلانین)</a></li>
-                                        <li><a class="dropdown-item" href="#">اندول (کواکس)</a></li>
-                                        <li><a class="dropdown-item" href="#">متیل رد</a></li>
-                                        <li><a class="dropdown-item" href="#">معرف VP</a></li>
-                                        <li><a class="dropdown-item" href="#">معرف PYR</a></li>
-                                        <li><a class="dropdown-item" href="#">نین هیدرین (هیپورات)</a></li>
-                                        <li><a class="dropdown-item" href="#">احیای نیترات</a></li>
+                                        <li><a class="dropdown-item" href="/QualityControls/16">دئوکسی کولات (صفرا)</a></li>
+                                        <li><a class="dropdown-item" href="/QualityControls/17">کلرید فریک (فنیل آلانین)</a></li>
+                                        <li><a class="dropdown-item" href="/QualityControls/18">اندول (کواکس)</a></li>
+                                        <li><a class="dropdown-item" href="/QualityControls/19">متیل رد</a></li>
+                                        <li><a class="dropdown-item" href="/QualityControls/20">معرف VP</a></li>
+                                        <li><a class="dropdown-item" href="/QualityControls/21">معرف PYR</a></li>
+                                        <li><a class="dropdown-item" href="/QualityControls/22">نین هیدرین (هیپورات)</a></li>
+                                        <li><a class="dropdown-item" href="/QualityControls/23">احیای نیترات</a></li>
                                     </ul>
                                 </li>
 
@@ -348,9 +335,9 @@
                                 <li class="dropdown-submenu">
                                     <a class="dropdown-item dropdown-toggle" href="#">آنتی سرم</a>
                                     <ul class="dropdown-menu long-text">
-                                        <li><a class="dropdown-item" href="#">شیگلا</a></li>
-                                        <li><a class="dropdown-item" href="#">سالمونلا</a></li>
-                                        <li><a class="dropdown-item" href="#">ایکلای</a></li>
+                                        <li><a class="dropdown-item" href="/QualityControls/24">شیگلا</a></li>
+                                        <li><a class="dropdown-item" href="/QualityControls/25">سالمونلا</a></li>
+                                        <li><a class="dropdown-item" href="/QualityControls/26">ایکلای</a></li>
                                     </ul>
                                 </li>
 

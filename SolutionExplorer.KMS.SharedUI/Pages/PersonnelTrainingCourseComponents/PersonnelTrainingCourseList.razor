@@ -1,0 +1,117 @@
+﻿@page "/personnel-trainig-courses"
+@using SolutionExplorer.KMS.SharedUI.Dtos.PersonnelTrainingCourseDtos
+@using SolutionExplorer.KMS.SharedUI.Dtos.PersonnelDtos
+@attribute [Authorize]
+
+@if (FormState == FormState.Create || FormState == FormState.Edit)
+{
+	<PersonnelTrainingCourseCreate Id="SelectedId" OnSavedChanges="HandleCompleted" />
+}
+else
+{
+	<div class="mb-3 d-flex flex-wrap gap-2">
+		<button class="btn btn-outline-info btn-sm" @onclick="OnSearch">
+			<i class="bi bi-arrow-clockwise"></i>
+		</button>
+
+		<button class="btn btn-outline-primary btn-sm"
+				data-bs-toggle="collapse"
+				data-bs-target="#searchCollapse">
+			<i class="bi bi-search"></i> فرم جستجو
+		</button>
+
+		<button class="btn btn-success btn-sm" @onclick="CreateNew">
+			<i class="bi bi-plus-circle"></i> درج رکورد جدید
+		</button>
+	</div>
+
+	<div class="collapse" id="searchCollapse">
+		<div class="card card-body mb-4 shadow-sm">
+			<form class="row g-3" @onreset="ClearForm">
+
+				<div class="col-md-4 col-sm-6">
+					<label class="form-label fw-semibold">
+						@(ApplicationHelper.GetDisplayName<PersonnelTrainingCourseSearchDto>(nameof(PersonnelTrainingCourseSearchDto.PersonnelId)))
+					</label>
+					<select class="form-select" @bind="SearchModel.PersonnelId">
+						<option value="">انتخاب کنید...</option>
+						@foreach (var user in UsersKeyValue)
+						{
+							<option value="@user.Key">@user.Value</option>
+						}
+					</select>
+				</div>
+
+				<div class="col-md-4 col-sm-6">
+					<label class="form-label fw-semibold">
+						@(ApplicationHelper.GetDisplayName<PersonnelTrainingCourseSearchDto>(nameof(PersonnelTrainingCourseSearchDto.IsConfirmed)))
+					</label>
+					<InputSelect class="form-select" @bind-Value="SearchModel.IsConfirmed">
+						<option value="0">انتخاب کنید...</option>
+						<option value="1">قبول شده</option>
+						<option value="2">رد شده</option>
+					</InputSelect>
+				</div>
+
+				<!-- Actions -->
+				<div class="col-12 text-end mt-3">
+					<button type="reset" class="btn btn-outline-secondary px-4 me-2">
+						<i class="bi bi-trash"></i> پاک کردن
+					</button>
+					<button type="button" class="btn btn-primary px-4" @onclick="OnSearch">
+						<i class="bi bi-search"></i> جستجو
+					</button>
+				</div>
+
+			</form>
+		</div>
+	</div>
+
+
+	<MudTable ServerData="LoadServerData" Hover Dense Striped @ref="Table">
+		<HeaderContent>
+			<MudTh>@(ApplicationHelper.GetDisplayName<PersonnelTrainingCourseDisplayDto>(nameof(PersonnelTrainingCourseDisplayDto.Title)))</MudTh>
+			<MudTh>@(ApplicationHelper.GetDisplayName<PersonnelTrainingCourseDisplayDto>(nameof(PersonnelTrainingCourseDisplayDto.Duration)))</MudTh>
+			<MudTh>@(ApplicationHelper.GetDisplayName<PersonnelTrainingCourseDisplayDto>(nameof(PersonnelTrainingCourseDisplayDto.TeacherFullName)))</MudTh>
+			<MudTh>@(ApplicationHelper.GetDisplayName<PersonnelTrainingCourseDisplayDto>(nameof(PersonnelTrainingCourseDisplayDto.PersonnelFullName)))</MudTh>
+			<MudTh>@(ApplicationHelper.GetDisplayName<PersonnelTrainingCourseDisplayDto>(nameof(PersonnelTrainingCourseDisplayDto.PersonnelNumber)))</MudTh>
+			<MudTh>@(ApplicationHelper.GetDisplayName<PersonnelTrainingCourseDisplayDto>(nameof(PersonnelTrainingCourseDisplayDto.DateOfEvent)))</MudTh>
+			<MudTh>@(ApplicationHelper.GetDisplayName<PersonnelTrainingCourseDisplayDto>(nameof(PersonnelTrainingCourseDisplayDto.QualificationCriteria)))</MudTh>
+			<MudTh>@(ApplicationHelper.GetDisplayName<PersonnelTrainingCourseDisplayDto>(nameof(PersonnelTrainingCourseDisplayDto.ScoreEarned)))</MudTh>
+			<MudTh>@(ApplicationHelper.GetDisplayName<PersonnelTrainingCourseDisplayDto>(nameof(PersonnelTrainingCourseDisplayDto.IsConfirmed)))</MudTh>
+			<MudTh>@(ApplicationHelper.GetDisplayName<PersonnelTrainingCourseDisplayDto>(nameof(PersonnelTrainingCourseDisplayDto.FirstConfirmerUserFullName)))</MudTh>
+			<MudTh>@(ApplicationHelper.GetDisplayName<PersonnelTrainingCourseDisplayDto>(nameof(PersonnelTrainingCourseDisplayDto.SecondConfirmerUserFullName)))</MudTh>
+			<MudTh>عملیات</MudTh>
+		</HeaderContent>
+
+		<RowTemplate>
+			<MudTd>@context.Title</MudTd>
+			<MudTd>@(context.Duration + " ساعت")</MudTd>
+			<MudTd>@context.TeacherFullName</MudTd>
+			<MudTd>@context.PersonnelFullName</MudTd>
+			<MudTd>@context.PersonnelNumber</MudTd>
+			<MudTd>@context.DateOfEvent.ToString("yyyy/MM/dd")</MudTd>
+			<MudTd>@context.QualificationCriteria</MudTd>
+			<MudTd>@context.ScoreEarned</MudTd>
+			<MudTd>@(context.IsConfirmed ? "قبول شده" : "رد شده")</MudTd>
+			<MudTd>@context.FirstConfirmerUserFullName</MudTd>
+			<MudTd>@context.SecondConfirmerUserFullName</MudTd>
+			<MudTd>
+				<MudIconButton Icon="@Icons.Material.Filled.Edit"
+							   Color="Color.Primary"
+							   Size="Size.Medium"
+							   OnClick="@(() => Edit(context.Id))" />
+
+				<MudIconButton Icon="@Icons.Material.Filled.Delete"
+							   Color="Color.Error"
+							   Size="Size.Medium"
+							   OnClick="@(() => DeleteItem(context.Id))">
+				</MudIconButton>
+			</MudTd>
+		</RowTemplate>
+
+		<PagerContent>
+			<MudTablePager />
+		</PagerContent>
+	</MudTable>
+}

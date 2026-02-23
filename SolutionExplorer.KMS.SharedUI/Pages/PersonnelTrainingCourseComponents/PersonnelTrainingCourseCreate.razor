@@ -1,0 +1,154 @@
+﻿@using SolutionExplorer.KMS.SharedUI.Dtos.PersonnelTrainingCourseDtos
+@if (showSpinner)
+{
+	<Spinner />
+}
+else
+{
+	<div class="container">
+		<div class="text-center mt-5">
+			<h1 class="page-title">
+				ایجاد پرسنل جدید
+			</h1>
+		</div>
+
+		<div class="row">
+			<div class="col-lg-10 mx-auto">
+				<div class="card mt-2 mx-auto beauty-card">
+					<div class="card-body bg-light">
+						<div class="container">
+							<EditForm Model="@Model" OnValidSubmit="HandleValidSubmit">
+								<DataAnnotationsValidator />
+
+								<div class="controls">
+
+									<div class="row row-margin-10">
+										<div class="form-group col-md-6">
+											<label>
+												@(ApplicationHelper.GetDisplayName<PersonnelTrainingCourseCreateDto>(nameof(PersonnelTrainingCourseCreateDto.Title)))
+											</label>
+											<InputText class="form-control" @bind-Value="Model.Title" />
+											<ValidationMessage For="@(() => Model.Title)" />
+										</div>
+										<div class="form-group col-md-6">
+											<label>
+												@(ApplicationHelper.GetDisplayName<PersonnelTrainingCourseCreateDto>(nameof(PersonnelTrainingCourseCreateDto.TeacherFullName)))
+											</label>
+											<InputText class="form-control" @bind-Value="Model.TeacherFullName" />
+											<ValidationMessage For="@(() => Model.TeacherFullName)" />
+										</div>
+									</div>
+									
+									<div class="row row-margin-10">
+
+										<div class="form-group col-md-6">
+											<label>
+												@(ApplicationHelper.GetDisplayName<PersonnelTrainingCourseCreateDto>(nameof(PersonnelTrainingCourseCreateDto.Duration)))
+											</label>
+											<InputNumber class="form-control" @bind-Value="Model.Duration" />
+											<ValidationMessage For="@(() => Model.Duration)" />
+										</div>
+
+										<div class="form-group col-md-6">
+											<label>
+												@(ApplicationHelper.GetDisplayName<PersonnelTrainingCourseCreateDto>(nameof(PersonnelTrainingCourseCreateDto.PersonnelId)))
+											</label>
+											<InputSelect class="form-select" @bind-Value="Model.PersonnelId">
+												<option value="">انتخاب کنید...</option>
+												@foreach (var user in UsersKeyValue)
+												{
+													<option value="@user.Key">@user.Value</option>
+												}
+											</InputSelect>
+										</div>
+
+									</div>
+
+
+									<div class="row row-margin-10">
+										<div class="form-group col-md-4">
+											<label>
+												@(ApplicationHelper.GetDisplayName<PersonnelTrainingCourseCreateDto>(nameof(PersonnelTrainingCourseCreateDto.DateOfEvent)))
+											</label>
+											<PersianDatePicker Value="@Model.DateOfEvent"
+															   ValueChanged="@((val) => Model.DateOfEvent = val ?? DateTime.Now)"
+															   Required="true"
+															   ShowToolbar="false" />
+										</div>
+
+										<div class="form-group col-md-4">
+											<label>
+												@(ApplicationHelper.GetDisplayName<PersonnelTrainingCourseCreateDto>(nameof(PersonnelTrainingCourseCreateDto.QualificationCriteria)))
+											</label>
+											<InputNumber class="form-control" @bind-Value="Model.QualificationCriteria" />
+											<ValidationMessage For="@(() => Model.QualificationCriteria)" />
+										</div>
+
+										<div class="form-group col-md-4">
+											<label>
+												@(ApplicationHelper.GetDisplayName<PersonnelTrainingCourseCreateDto>(nameof(PersonnelTrainingCourseCreateDto.ScoreEarned)))
+											</label>
+											<InputNumber class="form-control" @bind-Value="Model.ScoreEarned" />
+											<ValidationMessage For="@(() => Model.ScoreEarned)" />
+										</div>
+									</div>
+
+									<div class="row row-margin-10">
+										<div class="form-group">
+											<label class="form-check-label">
+												<InputCheckbox class="form-check-input" @bind-Value="Model.IsConfirmed" />
+												@(ApplicationHelper.GetDisplayName<PersonnelTrainingCourseCreateDto>(nameof(PersonnelTrainingCourseCreateDto.IsConfirmed)))
+											</label>
+										</div>
+									</div>
+
+									<div class="row row-margin-10">
+
+										<div class="form-group col-md-6">
+											<label>
+												@(ApplicationHelper.GetDisplayName<PersonnelTrainingCourseCreateDto>(nameof(PersonnelTrainingCourseCreateDto.FirstConfirmerUserId)))
+											</label>
+											<InputSelect class="form-select" @bind-Value="Model.FirstConfirmerUserId">
+												<option value="">انتخاب کنید...</option>
+												@foreach (var user in UsersKeyValue)
+												{
+													<option value="@user.Key">@user.Value</option>
+												}
+											</InputSelect>
+										</div>
+
+										<div class="form-group col-md-6">
+											<label>
+												@(ApplicationHelper.GetDisplayName<PersonnelTrainingCourseCreateDto>(nameof(PersonnelTrainingCourseCreateDto.SecondConfirmerUserId)))
+											</label>
+											<InputSelect class="form-select" @bind-Value="Model.SecondConfirmerUserId">
+												<option value="">انتخاب کنید...</option>
+												@foreach (var user in UsersKeyValue)
+												{
+													<option value="@user.Key">@user.Value</option>
+												}
+											</InputSelect>
+										</div>
+									</div>
+
+									<!-- Actions -->
+									<div class="row row-margin-10">
+										<div class="col-md-6">
+											<input type="submit" class="btn btn-success btn-send pt-2 btn-block" value="ثبت اطلاعات" />
+										</div>
+										<div class="col-md-6">
+											<button type="button" class="btn btn-primary btn-send pt-2 btn-block" @onclick="Cancel">
+												انصراف
+											</button>
+										</div>
+									</div>
+
+								</div>
+							</EditForm>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+}

@@ -1,0 +1,213 @@
+﻿@page "/personnel"
+@using SolutionExplorer.KMS.SharedUI.Dtos.PersonnelDtos
+@attribute [Authorize]
+
+@if (FormState == FormState.Create || FormState == FormState.Edit)
+{
+    <PersonnelCreate Id="SelectedId" OnSavedChanges="HandleCompleted" />
+}
+else
+{
+    <div class="mb-3 d-flex flex-wrap gap-2">
+        <button class="btn btn-outline-info btn-sm" @onclick="OnSearch">
+            <i class="bi bi-arrow-clockwise"></i>
+        </button>
+
+        <button class="btn btn-outline-primary btn-sm"
+                data-bs-toggle="collapse"
+                data-bs-target="#searchCollapse">
+            <i class="bi bi-search"></i> فرم جستجو
+        </button>
+
+        <button class="btn btn-success btn-sm" @onclick="CreateNew">
+            <i class="bi bi-plus-circle"></i> درج پرسنل جدید
+        </button>
+    </div>
+
+    <div class="collapse" id="searchCollapse">
+        <div class="card card-body mb-4 shadow-sm">
+            <form class="row g-3" @onreset="ClearForm">
+
+                <!-- UserName -->
+                <div class="col-md-4 col-sm-6">
+                    <label class="form-label fw-semibold">
+                        @(ApplicationHelper.GetDisplayName<PersonnelSearchDto>(nameof(PersonnelSearchDto.UserName)))
+                    </label>
+                    <input type="text" class="form-control" @bind="SearchModel.UserName" />
+                </div>
+
+                <!-- FirstName -->
+                <div class="col-md-4 col-sm-6">
+                    <label class="form-label fw-semibold">
+                        @(ApplicationHelper.GetDisplayName<PersonnelSearchDto>(nameof(PersonnelSearchDto.FirstName)))
+                    </label>
+                    <input type="text" class="form-control" @bind="SearchModel.FirstName" />
+                </div>
+
+                <!-- LastName -->
+                <div class="col-md-4 col-sm-6">
+                    <label class="form-label fw-semibold">
+                        @(ApplicationHelper.GetDisplayName<PersonnelSearchDto>(nameof(PersonnelSearchDto.LastName)))
+                    </label>
+                    <input type="text" class="form-control" @bind="SearchModel.LastName" />
+                </div>
+
+                <!-- Prefix -->
+                <div class="col-md-4 col-sm-6">
+                    <label class="form-label fw-semibold">
+                        @(ApplicationHelper.GetDisplayName<PersonnelSearchDto>(nameof(PersonnelSearchDto.Prefix)))
+                    </label>
+                    <select class="form-select" @bind="SearchModel.Prefix">
+                        <option value="">انتخاب کنید...</option>
+                        @foreach (var item in Enum.GetValues<Prefix>())
+                        {
+                            <option value="@item">@item.ToDisplay()</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Gender -->
+                <div class="col-md-4 col-sm-6">
+                    <label class="form-label fw-semibold">
+                        @(ApplicationHelper.GetDisplayName<PersonnelSearchDto>(nameof(PersonnelSearchDto.Gender)))
+                    </label>
+                    <select class="form-select" @bind="SearchModel.Gender">
+                        <option value="">انتخاب کنید...</option>
+                        @foreach (var item in Enum.GetValues<Gender>())
+                        {
+                            <option value="@item">@item.ToDisplay()</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Position -->
+                <div class="col-md-4 col-sm-6">
+                    <label class="form-label fw-semibold">
+                        @(ApplicationHelper.GetDisplayName<PersonnelSearchDto>(nameof(PersonnelSearchDto.Position)))
+                    </label>
+                    <select class="form-select" @bind="SearchModel.Position">
+                        <option value="">انتخاب کنید...</option>
+                        @foreach (var item in Enum.GetValues<Enums.Position>())
+                        {
+                            <option value="@item">@item.ToDisplay()</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- EducationalDegree -->
+                <div class="col-md-4 col-sm-6">
+                    <label class="form-label fw-semibold">
+                        @(ApplicationHelper.GetDisplayName<PersonnelSearchDto>(nameof(PersonnelSearchDto.EducationalDegree)))
+                    </label>
+                    <select class="form-select" @bind="SearchModel.EducationalDegree">
+                        <option value="">انتخاب کنید...</option>
+                        @foreach (var item in Enum.GetValues<EducationalDegree>())
+                        {
+                            <option value="@item">@item.ToDisplay()</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- EducationalField -->
+                <div class="col-md-4 col-sm-6">
+                    <label class="form-label fw-semibold">
+                        @(ApplicationHelper.GetDisplayName<PersonnelSearchDto>(nameof(PersonnelSearchDto.EducationalField)))
+                    </label>
+                    <input type="text" class="form-control" @bind="SearchModel.EducationalField" />
+                </div>
+
+                <!-- FirstConfirmer -->
+                <div class="col-md-4 col-sm-6">
+                    <label class="form-label fw-semibold">
+                        @(ApplicationHelper.GetDisplayName<PersonnelSearchDto>(nameof(PersonnelSearchDto.FirstConfirmerUserId)))
+                    </label>
+                    <select class="form-select" @bind="SearchModel.FirstConfirmerUserId">
+                        <option value="">انتخاب کنید...</option>
+                        @foreach (var user in UsersKeyValue)
+                        {
+                            <option value="@user.Key">@user.Value</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- SecondConfirmer -->
+                <div class="col-md-4 col-sm-6">
+                    <label class="form-label fw-semibold">
+                        @(ApplicationHelper.GetDisplayName<PersonnelSearchDto>(nameof(PersonnelSearchDto.SecondConfirmerUserId)))
+                    </label>
+                    <select class="form-select" @bind="SearchModel.SecondConfirmerUserId">
+                        <option value="">انتخاب کنید...</option>
+                        @foreach (var user in UsersKeyValue)
+                        {
+                            <option value="@user.Key">@user.Value</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Successor -->
+                <div class="col-md-4 col-sm-6">
+                    <label class="form-label fw-semibold">
+                        @(ApplicationHelper.GetDisplayName<PersonnelSearchDto>(nameof(PersonnelSearchDto.SuccessorUserId)))
+                    </label>
+                    <select class="form-select" @bind="SearchModel.SuccessorUserId">
+                        <option value="">انتخاب کنید...</option>
+                        @foreach (var user in UsersKeyValue)
+                        {
+                            <option value="@user.Key">@user.Value</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Actions -->
+                <div class="col-12 text-end mt-3">
+                    <button type="reset" class="btn btn-outline-secondary px-4 me-2">
+                        <i class="bi bi-trash"></i> پاک کردن
+                    </button>
+                    <button type="button" class="btn btn-primary px-4" @onclick="OnSearch">
+                        <i class="bi bi-search"></i> جستجو
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+
+    <MudTable ServerData="LoadServerData" Hover Dense Striped @ref="Table">
+        <HeaderContent>
+            <MudTh>@(ApplicationHelper.GetDisplayName<PersonnelDisplayDto>(nameof(PersonnelDisplayDto.UserName)))</MudTh>
+            <MudTh>@(ApplicationHelper.GetDisplayName<PersonnelDisplayDto>(nameof(PersonnelDisplayDto.FirstName)))</MudTh>
+            <MudTh>@(ApplicationHelper.GetDisplayName<PersonnelDisplayDto>(nameof(PersonnelDisplayDto.LastName)))</MudTh>
+            <MudTh>@(ApplicationHelper.GetDisplayName<PersonnelDisplayDto>(nameof(PersonnelDisplayDto.Gender)))</MudTh>
+            <MudTh>@(ApplicationHelper.GetDisplayName<PersonnelDisplayDto>(nameof(PersonnelDisplayDto.Position)))</MudTh>
+            <MudTh>@(ApplicationHelper.GetDisplayName<PersonnelDisplayDto>(nameof(PersonnelDisplayDto.EducationalDegree)))</MudTh>
+            <MudTh>@(ApplicationHelper.GetDisplayName<PersonnelDisplayDto>(nameof(PersonnelDisplayDto.FirstConfirmerUserFullName)))</MudTh>
+            <MudTh>@(ApplicationHelper.GetDisplayName<PersonnelDisplayDto>(nameof(PersonnelDisplayDto.SecondConfirmerUserFullName)))</MudTh>
+            <MudTh>@(ApplicationHelper.GetDisplayName<PersonnelDisplayDto>(nameof(PersonnelDisplayDto.SuccessorUserFullName)))</MudTh>
+            <MudTh>@(ApplicationHelper.GetDisplayName<PersonnelDisplayDto>(nameof(PersonnelDisplayDto.EmploymentDate)))</MudTh>
+            <MudTh>عملیات</MudTh>
+        </HeaderContent>
+
+        <RowTemplate>
+            <MudTd>@context.UserName</MudTd>
+            <MudTd>@context.FirstName</MudTd>
+            <MudTd>@context.LastName</MudTd>
+            <MudTd>@context.Gender.ToDisplay()</MudTd>
+            <MudTd>@context.Position.ToDisplay()</MudTd>
+            <MudTd>@context.EducationalDegree.ToDisplay()</MudTd>
+            <MudTd>@context.FirstConfirmerUserFullName</MudTd>
+            <MudTd>@context.SecondConfirmerUserFullName</MudTd>
+            <MudTd>@context.SuccessorUserFullName</MudTd>
+            <MudTd DataLabel="@(nameof(PersonnelDisplayDto.EmploymentDate))" Style="direction:ltr">@(context.EmploymentDate?.ToString("yyyy/MM/dd") ?? "ثبت نشده")</MudTd>
+            <MudTd>
+                <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                               Color="Color.Primary"
+                               OnClick="@(() => Edit(context.Id))" />
+            </MudTd>
+        </RowTemplate>
+
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
+}

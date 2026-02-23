@@ -15,6 +15,13 @@ namespace SolutionExplorer.KMS.SharedUI.Enums
         [Display(Name = "گزارش جواب")]
         ReportAnswer,
         [Display(Name = "منابع")]
-        References
+        References,
+
+        [Display(Name = "شناسنامه و چارت سازمانی")]
+        OrganizationalChart,
+        [Display(Name = "صلاحیت و وظایف")]
+        CompetenceAndDuties,
+        [Display(Name = "ایمنی و حفاظت")]
+        SafetyAndProtection,
     }
 }

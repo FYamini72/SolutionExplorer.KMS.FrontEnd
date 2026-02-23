@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Components.Forms;
 using Newtonsoft.Json;
+using SolutionExplorer.KMS.SharedUI.Dtos;
 using SolutionExplorer.KMS.SharedUI.Services.Interfaces;
 using System.Net.Http.Headers;
 using System.Reflection;
+using System.Text;
 using System.Text.Json;
 
 namespace SolutionExplorer.KMS.SharedUI.Services.Implementations
@@ -146,6 +148,84 @@ namespace SolutionExplorer.KMS.SharedUI.Services.Implementations
             return default(TResponse);
         }
 
+        ///// <inheritdoc />
+        //public async Task<TResponse?> PostMultipartAsync<TRequest, TResponse>(
+        //    string endpoint,
+        //    TRequest model,
+        //    int maxSize = 20,
+        //    bool addAuthToken = true)
+        //{
+        //    if (model == null)
+        //        throw new ArgumentNullException(nameof(model));
+
+        //    using var request = new HttpRequestMessage(HttpMethod.Post, _baseUrl + endpoint);
+        //    using var multipart = new MultipartFormDataContent();
+
+        //    // افزودن توکن احراز هویت در صورت نیاز
+        //    if (addAuthToken)
+        //    {
+        //        var token = await _localStorageService.GetItemAsync<string>("authToken");
+        //        if (!string.IsNullOrWhiteSpace(token))
+        //            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        //    }
+
+        //    // تابع کمکی برای افزودن مقدار متنی
+        //    void AddStringField(string name, object? value)
+        //    {
+        //        if (value == null) return;
+        //        multipart.Add(new StringContent(value.ToString()!, System.Text.Encoding.UTF8), name);
+        //    }
+
+        //    var props = typeof(TRequest).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+
+        //    foreach (var prop in props)
+        //    {
+        //        var value = prop.GetValue(model);
+        //        if (value == null) continue;
+
+        //        // اگر پراپرتی از نوع BaseFileInfo بود، فایل را استخراج کن
+        //        var propType = prop.PropertyType;
+        //        if (!propType.IsPrimitive && propType == typeof(BaseFileInfo))
+        //        {
+        //            var subProps = propType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+        //            var bytesProp = subProps.FirstOrDefault(p => p.Name.Equals("SelectedFileBytes", StringComparison.OrdinalIgnoreCase));
+        //            var nameProp = subProps.FirstOrDefault(p => p.Name.Equals("SelectedFileName", StringComparison.OrdinalIgnoreCase));
+        //            var contentTypeProp = subProps.FirstOrDefault(p => p.Name.Equals("SelectedFileContentType", StringComparison.OrdinalIgnoreCase));
+
+        //            var fileBytes = bytesProp?.GetValue(value) as byte[];
+        //            var fileName = nameProp?.GetValue(value)?.ToString() ?? "file.bin";
+        //            var contentType = contentTypeProp?.GetValue(value)?.ToString() ?? "application/octet-stream";
+
+        //            if (fileBytes != null && fileBytes.Length > 0)
+        //            {
+        //                if (fileBytes.Length > maxSize * 1024L * 1024L)
+        //                    throw new InvalidOperationException($"حجم فایل {fileName} بیش از {maxSize} مگابایت است.");
+
+        //                var fileContent = new ByteArrayContent(fileBytes);
+        //                fileContent.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+        //                multipart.Add(fileContent, prop.Name, fileName);
+        //                continue;
+        //            }
+        //        }
+
+        //        // مقادیر متنی و ساده
+        //        AddStringField(prop.Name, value);
+        //    }
+
+        //    request.Content = multipart;
+
+        //    using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+        //    var json = await response.Content.ReadAsStringAsync();
+
+        //    if (!response.IsSuccessStatusCode)
+        //        return default;
+
+        //    if (string.IsNullOrWhiteSpace(json))
+        //        return default;
+
+        //    return JsonConvert.DeserializeObject<TResponse>(json);
+        //}
+
         /// <inheritdoc />
         public async Task<TResponse?> PostMultipartAsync<TRequest, TResponse>(
             string endpoint,
@@ -159,7 +239,7 @@ namespace SolutionExplorer.KMS.SharedUI.Services.Implementations
             using var request = new HttpRequestMessage(HttpMethod.Post, _baseUrl + endpoint);
             using var multipart = new MultipartFormDataContent();
 
-            // افزودن توکن احراز هویت در صورت نیاز
+            // Add authentication token if required
             if (addAuthToken)
             {
                 var token = await _localStorageService.GetItemAsync<string>("authToken");
@@ -167,47 +247,54 @@ namespace SolutionExplorer.KMS.SharedUI.Services.Implementations
                     request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             }
 
-            // تابع کمکی برای افزودن مقدار متنی
-            void AddStringField(string name, object? value)
-            {
-                if (value == null) return;
-                multipart.Add(new StringContent(value.ToString()!, System.Text.Encoding.UTF8), name);
-            }
+            var properties = typeof(TRequest).GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
-            var props = typeof(TRequest).GetProperties(BindingFlags.Public | BindingFlags.Instance);
-
-            foreach (var prop in props)
+            foreach (var prop in properties)
             {
                 var value = prop.GetValue(model);
-                if (value == null) continue;
+                if (value == null)
+                    continue;
 
-                // اگر پراپرتی از نوع BaseFileInfo بود، فایل را استخراج کن
-                var propType = prop.PropertyType;
-                if (!propType.IsPrimitive && propType != typeof(string))
+                // ---------- 1. Handle files (BaseFileInfo) ----------
+                if (prop.PropertyType == typeof(BaseFileInfo))
                 {
-                    var subProps = propType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
-                    var bytesProp = subProps.FirstOrDefault(p => p.Name.Equals("SelectedFileBytes", StringComparison.OrdinalIgnoreCase));
-                    var nameProp = subProps.FirstOrDefault(p => p.Name.Equals("SelectedFileName", StringComparison.OrdinalIgnoreCase));
-                    var contentTypeProp = subProps.FirstOrDefault(p => p.Name.Equals("SelectedFileContentType", StringComparison.OrdinalIgnoreCase));
-
-                    var fileBytes = bytesProp?.GetValue(value) as byte[];
-                    var fileName = nameProp?.GetValue(value)?.ToString() ?? "file.bin";
-                    var contentType = contentTypeProp?.GetValue(value)?.ToString() ?? "application/octet-stream";
+                    var fileInfo = (BaseFileInfo)value;
+                    var fileBytes = fileInfo.SelectedFileBytes;
+                    var fileName = fileInfo.SelectedFileName ?? "file.bin";
+                    var contentType = fileInfo.SelectedFileContentType ?? "application/octet-stream";
 
                     if (fileBytes != null && fileBytes.Length > 0)
                     {
                         if (fileBytes.Length > maxSize * 1024L * 1024L)
-                            throw new InvalidOperationException($"حجم فایل {fileName} بیش از {maxSize} مگابایت است.");
+                            throw new InvalidOperationException($"File '{fileName}' exceeds {maxSize} MB.");
 
                         var fileContent = new ByteArrayContent(fileBytes);
                         fileContent.Headers.ContentType = new MediaTypeHeaderValue(contentType);
                         multipart.Add(fileContent, prop.Name, fileName);
-                        continue;
                     }
+                    continue;
                 }
 
-                // مقادیر متنی و ساده
-                AddStringField(prop.Name, value);
+                // ---------- 2. Handle collections (IEnumerable, but not string or byte[]) ----------
+                if (value is System.Collections.IEnumerable enumerable &&
+                    value is not string &&
+                    value is not byte[])
+                {
+                    var index = 0;
+                    foreach (var item in enumerable)
+                    {
+                        // Convert each item to string appropriately
+                        string itemString = ConvertValueToString(item);
+                        multipart.Add(new StringContent(itemString, Encoding.UTF8), prop.Name);
+                        // Alternative with indexed notation (uncomment if needed):
+                        // multipart.Add(new StringContent(itemString, Encoding.UTF8), $"{prop.Name}[{index++}]");
+                    }
+                    continue;
+                }
+
+                // ---------- 3. Handle simple values (primitives, enums, strings, etc.) ----------
+                string stringValue = ConvertValueToString(value);
+                multipart.Add(new StringContent(stringValue, Encoding.UTF8), prop.Name);
             }
 
             request.Content = multipart;
@@ -222,6 +309,25 @@ namespace SolutionExplorer.KMS.SharedUI.Services.Implementations
                 return default;
 
             return JsonConvert.DeserializeObject<TResponse>(json);
+        }
+
+        /// <summary>
+        /// Converts a value to its string representation for form data.
+        /// - Enums → integer value
+        /// - Everything else → ToString()
+        /// </summary>
+        private static string ConvertValueToString(object? value)
+        {
+            if (value == null)
+                return string.Empty;
+
+            Type type = value.GetType();
+
+            if (type.IsEnum)
+                return Convert.ToInt32(value).ToString();
+
+            // For non-enum simple types, just use ToString()
+            return value.ToString() ?? string.Empty;
         }
 
         /// <inheritdoc />
@@ -245,47 +351,54 @@ namespace SolutionExplorer.KMS.SharedUI.Services.Implementations
                     request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             }
 
-            // تابع کمکی برای افزودن مقدار متنی
-            void AddStringField(string name, object? value)
-            {
-                if (value == null) return;
-                multipart.Add(new StringContent(value.ToString()!, System.Text.Encoding.UTF8), name);
-            }
+            var properties = typeof(TRequest).GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
-            var props = typeof(TRequest).GetProperties(BindingFlags.Public | BindingFlags.Instance);
-
-            foreach (var prop in props)
+            foreach (var prop in properties)
             {
                 var value = prop.GetValue(model);
-                if (value == null) continue;
+                if (value == null)
+                    continue;
 
-                // اگر پراپرتی از نوع BaseFileInfo بود، فایل را استخراج کن
-                var propType = prop.PropertyType;
-                if (!propType.IsPrimitive && propType != typeof(string))
+                // ---------- 1. Handle files (BaseFileInfo) ----------
+                if (prop.PropertyType == typeof(BaseFileInfo))
                 {
-                    var subProps = propType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
-                    var bytesProp = subProps.FirstOrDefault(p => p.Name.Equals("SelectedFileBytes", StringComparison.OrdinalIgnoreCase));
-                    var nameProp = subProps.FirstOrDefault(p => p.Name.Equals("SelectedFileName", StringComparison.OrdinalIgnoreCase));
-                    var contentTypeProp = subProps.FirstOrDefault(p => p.Name.Equals("SelectedFileContentType", StringComparison.OrdinalIgnoreCase));
-
-                    var fileBytes = bytesProp?.GetValue(value) as byte[];
-                    var fileName = nameProp?.GetValue(value)?.ToString() ?? "file.bin";
-                    var contentType = contentTypeProp?.GetValue(value)?.ToString() ?? "application/octet-stream";
+                    var fileInfo = (BaseFileInfo)value;
+                    var fileBytes = fileInfo.SelectedFileBytes;
+                    var fileName = fileInfo.SelectedFileName ?? "file.bin";
+                    var contentType = fileInfo.SelectedFileContentType ?? "application/octet-stream";
 
                     if (fileBytes != null && fileBytes.Length > 0)
                     {
                         if (fileBytes.Length > maxSize * 1024L * 1024L)
-                            throw new InvalidOperationException($"حجم فایل {fileName} بیش از {maxSize} مگابایت است.");
+                            throw new InvalidOperationException($"File '{fileName}' exceeds {maxSize} MB.");
 
                         var fileContent = new ByteArrayContent(fileBytes);
                         fileContent.Headers.ContentType = new MediaTypeHeaderValue(contentType);
                         multipart.Add(fileContent, prop.Name, fileName);
-                        continue;
                     }
+                    continue;
                 }
 
-                // مقادیر متنی و ساده
-                AddStringField(prop.Name, value);
+                // ---------- 2. Handle collections (IEnumerable, but not string or byte[]) ----------
+                if (value is System.Collections.IEnumerable enumerable &&
+                    value is not string &&
+                    value is not byte[])
+                {
+                    var index = 0;
+                    foreach (var item in enumerable)
+                    {
+                        // Convert each item to string appropriately
+                        string itemString = ConvertValueToString(item);
+                        multipart.Add(new StringContent(itemString, Encoding.UTF8), prop.Name);
+                        // Alternative with indexed notation (uncomment if needed):
+                        // multipart.Add(new StringContent(itemString, Encoding.UTF8), $"{prop.Name}[{index++}]");
+                    }
+                    continue;
+                }
+
+                // ---------- 3. Handle simple values (primitives, enums, strings, etc.) ----------
+                string stringValue = ConvertValueToString(value);
+                multipart.Add(new StringContent(stringValue, Encoding.UTF8), prop.Name);
             }
 
             request.Content = multipart;
