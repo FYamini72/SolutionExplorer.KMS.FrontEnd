@@ -1,0 +1,291 @@
+﻿@using SolutionExplorer.KMS.SharedUI.Dtos.PeriodicQC
+
+@code {
+    [Parameter]
+    public int? QualityControlBaseInfoId { get; set; }
+
+    [Parameter]
+    public int? Id { get; set; }
+
+    PeriodicQualityControlCreateDto sample = new PeriodicQualityControlCreateDto
+    {
+        QualityControlBaseInfoId = 12,
+
+        ManufactureDate = DateTime.Now,
+        ProductionDate = DateTime.Now,
+        ExpirationDate = DateTime.Now.AddMonths(6),
+
+        PerformedByUserId = 5,
+        ManufacturerCompany = "Merck",
+        BatchNumber = "BatchNumber",
+
+        OpeningDate = DateTime.Now,
+
+        PowderGramPerLiter = 38.5f,
+
+        UsageStartAcceptanceNumber = "1234",
+
+        MediumCount = MediumCountEnum.MoreThan100,
+        StorageTemperature = StorageTemperatureEnum.TwoTo8,
+        ShelfLifeDuration = ShelfLifeDurationEnum.ThreeMonths,
+
+        AutoclaveConditions = AutoclaveConditionEnum.Pressure12To15_118To121C_15Min,
+        ExtraAutoclaveCondition = null,
+
+        MediumType = MediumTypeEnum.Plate10Cm,
+
+        QualityControlPeriod = QualityControlPeriodEnum.Monthly,
+        QualityControlDate = DateTime.Now,
+
+        FirstConfirmerUserId = 3,
+        SecondConfirmerUserId = 7
+    };
+
+    private void HandleValidSubmit()
+    {
+
+    }
+
+    private void Cancel()
+    {
+        
+    }
+
+    private List<KeyValuePair<int, string>> UsersKeyValue = new();
+}
+
+<div class="text-center mt-5">
+    <h1 class="page-title">
+        کنترل کیفی دوره ای
+    </h1>
+</div>
+
+
+<div class="row">
+    <div class="col-lg-12 mx-auto">
+        <div class="card mt-2 mx-auto beauty-card">
+            <div class="card-body bg-light">
+                <div class="container">
+                    <EditForm Model="@sample" OnValidSubmit="HandleValidSubmit">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+
+
+                        <div class="controls">
+
+
+                            <div class="row col-md-12 row-margin-10">
+
+                                <div class="form-group col-md-4">
+                                    <label>تاریخ ساخت</label>
+                                    <PersianDatePicker Required="true"
+                                                       ShowToolbar="false"
+                                                       Value="@sample.ManufactureDate"
+                                                       ValueChanged="@((val) => sample.ManufactureDate = val ?? DateTime.Now)" />
+                                </div>
+
+                                <div class="form-group col-md-4">
+                                    <label>تاریخ تولید</label>
+                                    <PersianDatePicker Required="true"
+                                                       ShowToolbar="false"
+                                                       Value="@sample.ProductionDate"
+                                                       ValueChanged="@((val) => sample.ProductionDate = val ?? DateTime.Now)" />
+                                </div>
+
+                                <div class="form-group col-md-4">
+                                    <label>تاریخ انقضا</label>
+                                    <PersianDatePicker Required="true"
+                                                       ShowToolbar="false"
+                                                       Value="@sample.ExpirationDate"
+                                                       ValueChanged="@((val) => sample.ExpirationDate = val ?? DateTime.Now)" />
+                                </div>
+
+                            </div>
+                            <div class="row col-md-12 row-margin-10">
+                                <div class="col-md-4">
+                                    <label>تاریخ بازگشایی </label>
+                                    <PersianDatePicker Required="true"
+                                                       ShowToolbar="false"
+                                                       Value="@sample.OpeningDate"
+                                                       ValueChanged="@((val) => sample.OpeningDate = val ?? DateTime.Now)" />
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label>تاریخ کنترل کیفی</label>
+                                    <PersianDatePicker Required="true"
+                                                       ShowToolbar="false"
+                                                       Value="@sample.QualityControlDate"
+                                                       ValueChanged="@((val) => sample.QualityControlDate = val ?? DateTime.Now)" />
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label>گرم پودر در لیتر</label>
+                                    <InputNumber class="form-control" @bind-Value="sample.PowderGramPerLiter" />
+                                </div>
+                            </div>
+
+                            <div class="row col-md-12 row-margin-10">
+
+
+                                <div class="col-md-4">
+                                    <label>شرکت سازنده</label>
+                                    <InputText class="form-control" @bind-Value="sample.ManufacturerCompany" />
+                                    @* <InputSelect class="form-control" @bind-Value="sample.MediumCount">
+                                    @foreach (var item in Enum.GetValues<ManufacturerCompanies>())
+                                    {
+                                        <option value="@item">@item.ToDisplay()</option>
+                                    }
+                                </InputSelect> *@
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label>سری ساخت</label>
+                                    <InputText class="form-control" @bind-Value="sample.BatchNumber" />
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label>شماره پذیرش شروع مصرف</label>
+                                    <InputText class="form-control" @bind-Value="sample.UsageStartAcceptanceNumber" />
+                                </div>
+
+                            </div>
+
+                            <div class="row col-md-12 row-margin-10">
+
+                                <div class="col-md-4">
+                                    <label>انجام دهنده</label>
+                                    @* <InputNumber class="form-control" @bind-Value="sample.PerformedByUserId" /> *@
+                                    <InputSelect class="form-select" @bind-value="sample.PerformedByUserId">
+                                        <option value="">انتخاب کنید...</option>
+                                        @foreach (var user in UsersKeyValue)
+                                        {
+                                            <option value="@user.Key">@user.Value</option>
+                                        }
+                                    </InputSelect>
+                                    <ValidationMessage For="@(() => sample.PerformedByUserId)" />
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label>تایید کننده</label>
+                                    <InputSelect class="form-select" @bind-value="sample.FirstConfirmerUserId">
+                                        <option value="">انتخاب کنید...</option>
+                                        @foreach (var user in UsersKeyValue)
+                                        {
+                                            <option value="@user.Key">@user.Value</option>
+                                        }
+                                    </InputSelect>
+                                    <ValidationMessage For="@(() => sample.FirstConfirmerUserId)" />
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label>تصدیق کننده</label>
+                                    <InputSelect class="form-select" @bind-value="sample.SecondConfirmerUserId">
+                                        <option value="">انتخاب کنید...</option>
+                                        @foreach (var user in UsersKeyValue)
+                                        {
+                                            <option value="@user.Key">@user.Value</option>
+                                        }
+                                    </InputSelect>
+                                    <ValidationMessage For="@(() => sample.SecondConfirmerUserId)" />
+                                </div>
+
+                            </div>
+
+
+
+                            <div class="row col-md-12 row-margin-10">
+
+                                <div class="col-md-4">
+                                    <label>تعداد محیط</label>
+                                    <InputSelect class="form-control" @bind-Value="sample.MediumCount">
+                                        @foreach (var item in Enum.GetValues<MediumCountEnum>())
+                                        {
+                                            <option value="@item">@item.ToDisplay()</option>
+                                        }
+                                    </InputSelect>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label>دمای نگهداری</label>
+                                    <InputSelect class="form-control" @bind-Value="sample.StorageTemperature">
+                                        @foreach (var item in Enum.GetValues<StorageTemperatureEnum>())
+                                        {
+                                            <option value="@item">@item.ToDisplay()</option>
+                                        }
+                                    </InputSelect>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label>مدت ماندگاری</label>
+                                    <InputSelect class="form-control" @bind-Value="sample.ShelfLifeDuration">
+                                        @foreach (var item in Enum.GetValues<ShelfLifeDurationEnum>())
+                                        {
+                                            <option value="@item">@item.ToDisplay()</option>
+                                        }
+                                    </InputSelect>
+                                </div>
+                            </div>
+                            <div class="row col-md-12 row-margin-10">
+
+                                <div class="col-md-4">
+                                    <label>شرایط اتوکلاو</label>
+                                    <InputSelect class="form-control" @bind-Value="sample.AutoclaveConditions">
+                                        @foreach (var item in Enum.GetValues<AutoclaveConditionEnum>())
+                                        {
+                                            <option value="@item">@item.ToDisplay()</option>
+                                        }
+                                    </InputSelect>
+                                </div>
+
+                                <div class="col-md-8">
+                                    <label>شرایط اضافی اتوکلاو</label>
+                                    <InputTextArea class="form-control" @bind-Value="sample.ExtraAutoclaveCondition" />
+                                </div>
+                            </div>
+
+                            <div class="row col-md-12 row-margin-10">
+
+                                <div class="col-md-4">
+                                    <label>نوع محیط</label>
+                                    <InputSelect class="form-control" @bind-Value="sample.MediumType">
+                                        @foreach (var item in Enum.GetValues<MediumTypeEnum>())
+                                        {
+                                            <option value="@item">@item.ToDisplay()</option>
+                                        }
+                                    </InputSelect>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label>دوره کنترل کیفی</label>
+                                    <InputSelect class="form-control" @bind-Value="sample.QualityControlPeriod">
+                                        @foreach (var item in Enum.GetValues<QualityControlPeriodEnum>())
+                                        {
+                                            <option value="@item">@item.ToDisplay()</option>
+                                        }
+                                    </InputSelect>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <br />
+
+                        <div class="row row-margin-10">
+                            <div class="col-md-6">
+                                <input type="submit" class="btn btn-success btn-send pt-2 btn-block" value="ثبت اطلاعات" />
+                            </div>
+                            <div class="col-md-6">
+                                <button type="button" @onclick="Cancel" class="btn btn-primary btn-send pt-2 btn-block">انصراف</button>
+                            </div>
+                        </div>
+
+
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

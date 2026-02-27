@@ -1,0 +1,267 @@
+﻿@page "/PeriodicQualityControls/{QualityControlBaseInfoId:int?}"
+@using SolutionExplorer.KMS.SharedUI.Dtos.QualityControlDtos
+@inject IHttpService httpHelper
+@inject IJSRuntime JSRuntime
+@attribute [Authorize]
+
+@if (formState is FormState.Edit or FormState.Create)
+{
+	<PerdidocQualityConotrolCreate Id="@id" QualityControlBaseInfoId="@QualityControlBaseInfoId" />
+}
+else
+{
+	<div class="mb-3 d-flex flex-wrap gap-2">
+		<button class="btn btn-outline-info btn-sm" type="button" @onclick="OnSearch">
+			<span aria-hidden="true" style="vertical-align: sub;" class="bi bi-arrow-clockwise"></span>
+		</button>
+
+		<button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#searchFormCollapse" aria-expanded="false" aria-controls="searchFormCollapse">
+			<i class="bi bi-search"></i>
+			فرم جستجو
+		</button>
+
+		<button class="btn btn-success btn-sm" @onclick="CreateNewItem">
+			<i class="bi bi-plus-circle"></i>
+			درج رکورد جدید
+		</button>
+	</div>
+
+	<div class="collapse" id="searchFormCollapse">
+		<div class="card card-body mb-4 shadow-sm">
+			<form class="row g-3" @onreset="ClearForm">
+
+				<div class="col-md-4 col-sm-6">
+					<label class="form-label fw-semibold">
+						@(ApplicationHelper.GetDisplayName<QualityControlSearchDto>(nameof(QualityControlSearchDto.PerformedByUserId)))
+					</label>
+					<select class="form-select" @bind="searchModel.PerformedByUserId">
+						<option value="">انتخاب کنید...</option>
+						@foreach (var user in UsersKeyValue)
+						{
+							<option value="@user.Key">@user.Value</option>
+						}
+					</select>
+				</div>
+
+				<div class="col-md-4 col-sm-6">
+					<label class="form-label fw-semibold">
+						@(ApplicationHelper.GetDisplayName<QualityControlSearchDto>(nameof(QualityControlSearchDto.FirstConfirmerUserId)))
+					</label>
+					<select class="form-select" @bind="searchModel.FirstConfirmerUserId">
+						<option value="">انتخاب کنید...</option>
+						@foreach (var user in UsersKeyValue)
+						{
+							<option value="@user.Key">@user.Value</option>
+						}
+					</select>
+				</div>
+
+				<div class="col-md-4 col-sm-6">
+					<label class="form-label fw-semibold">
+						@(ApplicationHelper.GetDisplayName<QualityControlSearchDto>(nameof(QualityControlSearchDto.SecondConfirmerUserId)))
+					</label>
+					<select class="form-select" @bind="searchModel.SecondConfirmerUserId">
+						<option value="">انتخاب کنید...</option>
+						@foreach (var user in UsersKeyValue)
+						{
+							<option value="@user.Key">@user.Value</option>
+						}
+					</select>
+				</div>
+
+				<div class="col-md-4 col-sm-6">
+					<label class="form-label fw-semibold">
+						@(ApplicationHelper.GetDisplayName<QualityControlSearchDto>(nameof(QualityControlSearchDto.FinalCondition)))
+					</label>
+					<InputSelect class="form-select" @bind-Value="searchModel.FinalCondition">
+						<option>انتخاب کنید...</option>
+						<option value="1">مورد تایید</option>
+						<option value="2">عدم تایید</option>
+					</InputSelect>
+				</div>
+
+				<div class="col-12 text-end mt-3">
+					<button type="reset" class="btn btn-outline-secondary px-4 me-2">
+						<i class="bi bi-trash"></i> پاک کردن
+					</button>
+					<button type="button" class="btn btn-primary px-4" @onclick="OnSearch">
+						<i class="bi bi-search"></i> جستجو
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	<MudTable ServerData="ServerReload" Dense="true" Striped="true" Hover="true" @ref="table">
+		<HeaderContent>
+			<MudTh>@(ApplicationHelper.GetDisplayName<QualityControlDisplayDto>(nameof(QualityControlDisplayDto.SampleDate)))</MudTh>
+			<MudTh>@(ApplicationHelper.GetDisplayName<QualityControlDisplayDto>(nameof(QualityControlDisplayDto.PerformedByUserFullName)))</MudTh>
+			<MudTh>نام محیط</MudTh>
+			<MudTh>شرکت سازنده</MudTh>
+			<MudTh>@(ApplicationHelper.GetDisplayName<QualityControlDisplayDto>(nameof(QualityControlDisplayDto.ProductionDate)))</MudTh>
+			<MudTh>@(ApplicationHelper.GetDisplayName<QualityControlDisplayDto>(nameof(QualityControlDisplayDto.ExpirationDate)))</MudTh>
+			<MudTh>سری ساخت</MudTh>
+
+
+			<MudTh>تاریخ بازگشایی</MudTh>
+			<MudTh>مقدار پودر در 1 لیتر</MudTh>
+			<MudTh>شماره پذیرش شروع استفاده</MudTh>
+			<MudTh>تعداد محطی</MudTh>
+			<MudTh>دمای نگهداری</MudTh>
+
+			<MudTh>
+				شرایط اتوکلاو
+			</MudTh>
+			<MudTh>
+				نوع محیط
+			</MudTh>
+			<MudTh>
+				دوره انجام کنترل کیفی
+			</MudTh>
+			<MudTh>
+				تاریخ کنترل کیفی
+			</MudTh>
+			<MudTh>
+				مشخصات فیزیکی
+			</MudTh>
+			<MudTh>
+				مشخصات ظاهری
+			</MudTh>
+			<MudTh>
+				تایید کننده
+			</MudTh>
+			<MudTh>
+				تصدیق و امضا
+			</MudTh>
+
+		</HeaderContent>
+		<RowTemplate>
+			<MudTd DataLabel="@(nameof(QualityControlDisplayDto.SampleDate))">@context.SampleDate.ToString("yyyy/MM/dd")</MudTd>
+			<MudTd DataLabel="@(nameof(QualityControlDisplayDto.PerformedByUserFullName))">@context.PerformedByUserFullName</MudTd>
+			<MudTd DataLabel="@(nameof(QualityControlDisplayDto.Title))">@context.Title</MudTd>
+			<MudTd DataLabel="@(nameof(QualityControlDisplayDto.Produces))">@context.Produces</MudTd>
+			<MudTd DataLabel="@(nameof(QualityControlDisplayDto.Series))">@context.Series</MudTd>
+			<MudTd DataLabel="@(nameof(QualityControlDisplayDto.ProductionDate))">@context.ProductionDate.ToString("yyyy/MM/dd")</MudTd>
+			<MudTd DataLabel="@(nameof(QualityControlDisplayDto.ExpirationDate))">@context.ExpirationDate.ToString("yyyy/MM/dd")</MudTd>
+			<MudTd DataLabel="@(nameof(QualityControlDisplayDto.StorageConditionTitle))">@context.StorageConditionTitle</MudTd>
+			<MudTd DataLabel="@(nameof(QualityControlDisplayDto.PhysicalSpecifications))">@(context.PhysicalSpecifications != null ? string.Join(", ", context.PhysicalSpecifications.Select(x => x.QCBaseInfoPhysicalSpecificationTitle)) : "ثبت نشده")</MudTd>
+			<MudTd DataLabel="@(nameof(QualityControlDisplayDto.FirstConfirmerUserFullName))">@context.FirstConfirmerUserFullName</MudTd>
+			<MudTd DataLabel="@(nameof(QualityControlDisplayDto.SecondConfirmerUserFullName))">@context.SecondConfirmerUserFullName</MudTd>
+			<MudTd DataLabel="@(nameof(QualityControlDisplayDto.Id))" Style="width: 150px;">
+				@* <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Medium" OnClick="@(() => EditItem(context.Id, context.QualityControlBaseInfoId))"></MudIconButton> *@
+				<MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Medium" OnClick="@(() => DeleteItem(context.Id))"></MudIconButton>
+			</MudTd>
+		</RowTemplate>
+		<NoRecordsContent>
+			<MudText>موردی یافت نشد.</MudText>
+		</NoRecordsContent>
+		<LoadingContent>
+			<MudText>Loading...</MudText>
+		</LoadingContent>
+		<PagerContent>
+			<MudTablePager />
+		</PagerContent>
+	</MudTable>
+}
+
+@code {
+	enum FormState { None, Create, Edit }
+	private FormState formState = FormState.None;
+	private int? id = null;
+
+	[Parameter]
+	public int? QualityControlBaseInfoId { get; set; }
+
+	private QualityControlSearchDto searchModel = new();
+	private MudTable<QualityControlDisplayDto> table;
+	private List<KeyValuePair<int, string>> UsersKeyValue = new();
+
+	NotificationClassName ClassName = NotificationClassName.Success;
+	string MessageBody = "عملیات با موفقت انجام شد.";
+
+	protected override async Task OnInitializedAsync()
+	{
+		var apiResult = await httpHelper
+			.GetByFilterAsync<UserSearchDto, ApiResult<List<KeyValuePair<int, string>>>>("api/User/GetByFilterForDropDown", new());
+
+		UsersKeyValue = apiResult?.Data?.ToList() ?? new();
+	}
+
+	protected override Task OnParametersSetAsync()
+	{
+		searchModel.QualityControlBaseInfoId = QualityControlBaseInfoId;
+		table?.ReloadServerData();
+		return base.OnParametersSetAsync();
+	}
+
+	private async Task<TableData<QualityControlDisplayDto>> ServerReload(TableState state, CancellationToken token)
+	{
+		searchModel.CalculateTakeAndSkip(state.Page, state.PageSize);
+		var apiResult = await httpHelper
+			.GetByFilterAsync<QualityControlSearchDto, ApiResult<BaseGridDto<QualityControlDisplayDto>>>("api/QualityControl/GetByFilter", searchModel);
+
+		var items = apiResult?.Data?.Data ?? Enumerable.Empty<QualityControlDisplayDto>();
+		var total = apiResult?.Data?.TotalCount ?? 0;
+		return new TableData<QualityControlDisplayDto> { TotalItems = total, Items = items };
+	}
+
+	private void OnSearch()
+	{
+		table?.ReloadServerData();
+	}
+
+	private void ClearForm()
+	{
+		searchModel = new QualityControlSearchDto();
+		OnSearch();
+	}
+
+	private void CreateNewItem() => formState = FormState.Create;
+
+	private void EditItem(int itemId, int qualityControlBaseInfoId)
+	{
+		this.id = itemId;
+		this.QualityControlBaseInfoId = itemId;
+		formState = FormState.Edit;
+	}
+
+	private async Task DeleteItem(int itemId)
+	{
+		this.id = itemId;
+		formState = FormState.None;
+
+		var confirmResult = await JSRuntime.InvokeAsync<bool>("confirmDelete", "آیا از حذف این آیتم اطمینان دارید؟");
+		if (confirmResult)
+		{
+			var apiResult = await httpHelper.DeleteAsync<ApiResult>($"api/QualityControl?id={this.id}");
+
+			if (apiResult?.IsSuccess ?? false)
+			{
+				ClassName = NotificationClassName.Success;
+				MessageBody = "عملیات با موفقت انجام شد.";
+			}
+			else
+			{
+				ClassName = NotificationClassName.Error;
+				MessageBody = apiResult?.Message ?? "خطایی رخ داده است. لطفا با پشتیبانی تماس بگیرید.";
+			}
+
+			await ShowMessage();
+			table?.ReloadServerData();
+		}
+	}
+
+	private async Task HandleCreateCompleted(bool saved)
+	{
+		formState = FormState.None;
+		this.id = null;
+		if (!saved) return;
+
+		ClassName = NotificationClassName.Success;
+		MessageBody = "عملیات با موفقت انجام شد.";
+		await ShowMessage();
+		table?.ReloadServerData();
+	}
+
+	private Task ShowMessage() => JSRuntime.InvokeVoidAsync("showToast", ClassName.ToDisplay(), MessageBody).AsTask();
+}
