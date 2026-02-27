@@ -1,0 +1,55 @@
+﻿using SolutionExplorer.KMS.SharedUI.Dtos;
+using SolutionExplorer.KMS.SharedUI.Enums;
+
+
+namespace SolutionExplorer.KMS.SharedUI.Dtos.PeriodicQC
+{
+    public class PeriodicQualityControlDisplayDto : BaseDto
+    {
+		public int QualityControlBaseInfoId { get; set; }
+		public DateTime ManufactureDate { get; set; }
+		public int PerformedByUserId { get; set; }
+        
+		public string PerformedByUserFullName { get; set; }
+
+        public string? ManufacturerCompany { get; set; }
+		public DateTime ProductionDate { get; set; }
+		public DateTime ExpirationDate { get; set; }
+		public string? BatchNumber { get; set; }
+		public DateTime OpeningDate { get; set; }
+		public float PowderGramPerLiter { get; set; }
+		public string? UsageStartAcceptanceNumber { get; set; }
+		public MediumCountEnum MediumCount { get; set; }
+		public StorageTemperatureEnum StorageTemperature { get; set; }
+		public ShelfLifeDurationEnum ShelfLifeDuration { get; set; }
+		public AutoclaveConditionEnum AutoclaveConditions { get; set; }
+		public string? ExtraAutoclaveCondition { get; set; }
+		public MediumTypeEnum MediumType { get; set; }
+		public QualityControlPeriodEnum QualityControlPeriod { get; set; }
+		public DateTime QualityControlDate { get; set; }
+		
+		public int FirstConfirmerUserId { get; set; }
+        public string FirstConfirmerUserFullName { get; set; }
+
+        public int SecondConfirmerUserId { get; set; }
+        public string SecondConfirmerUserFullName { get; set; }
+
+        public List<PeriodicQCPhysicalSpecificationsDisplayDto> PhysicalSpecifications { get; set; }
+        public List<PeriodicQCAppearanceDisplayDto> Appearances { get; set; }
+    }
+
+	public class PeriodicQCPhysicalSpecificationsDisplayDto : BaseDto
+    {
+        public int QCBaseInfoPhysicalSpecificationId { get; set; }
+        public string Title { get; set; }
+        public bool IsChecked { get; set; }
+    }
+
+	public class PeriodicQCAppearanceDisplayDto : BaseDto
+    {
+        public int QCBaseInfoAppearanceId { get; set; }
+        public string Title { get; set; }
+        public AppearanceGroupEnum AppearanceGroup { get; set; }
+        public bool IsSelected { get; set; }
+    }
+}
